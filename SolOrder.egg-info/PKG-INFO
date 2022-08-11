@@ -1,14 +1,12 @@
 Metadata-Version: 2.1
 Name: SolOrder
-Version: 1.0.0
-Summary: An attempt to calculate structural order parameters of water molecules..
+Version: 1.0.3
+Summary: Updated a few..
 Home-page: https://github.com/dmighty007/SolOrder
 Download-URL: https://github.com/dmighty007/SolOrder
 Author: Dibyendu Maity
 Author-email: dibyendumaity1999@bose.res.in
-License: UNKNOWN
+License: MIT
+Project-URL: Bug Tracker, https://github.com/dmighty007/SolOrder/issues
 Keywords: water,SOL,Order,Parameter
-Platform: UNKNOWN
-
-UNKNOWN
-
+License-File: LICENSE

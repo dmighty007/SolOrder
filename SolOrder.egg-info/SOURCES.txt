@@ -1,3 +1,4 @@
+LICENSE
 README.md
 setup.cfg
 setup.py
@@ -7,4 +8,5 @@ SolOrder/entropy.py
 SolOrder.egg-info/PKG-INFO
 SolOrder.egg-info/SOURCES.txt
 SolOrder.egg-info/dependency_links.txt
+SolOrder.egg-info/requires.txt
 SolOrder.egg-info/top_level.txt
