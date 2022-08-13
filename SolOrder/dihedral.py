@@ -183,7 +183,7 @@ class OrderParameter:
                 particle_counter += 1
             counter_list.append(particle_counter)
             f4_list.append(avg_f4/particle_counter)
-        self.F4 = f4_list
+        self.f4 = f4_list
         
     ############# orientational tetrahedral order parameter........
     def singleOTO(self, item, arr):
@@ -288,7 +288,7 @@ class OrderParameter:
         lsi = _np.zeros(self.n_atoms)
         for i in _tqdm.trange(self.n_atoms):
             lsi[i] = self.singleLSI(i)
-        self.LSI = lsi
+        self.lsi = lsi
         
    ####################################### Minimum Angle distribution.......
     def singleMinimumAngle(self, item):
@@ -316,10 +316,10 @@ class OrderParameter:
         for i in _tqdm.trange(self.n_atoms):
 
             if i not in adj_list:
-                angle, adj = self.SingleMinimumAngle(i)
+                angle, adj = self.singleMinimumAngle(i)
                 adj_list.append(adj)
                 minAngles[i] = angle
                 minAngles[adj] = angle
             else:
                 adj_list.append(i)
-        self.MinAngles = minAngles
+        self.minAngles = minAngles

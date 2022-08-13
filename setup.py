@@ -9,7 +9,7 @@ with open("requirements.txt") as f:
 setup(
     name = 'SolOrder',
     packages = ['SolOrder'],
-    version = '1.0.3',  # Ideally should be same as your GitHub release tag varsion
+    version = '1.0.7',  # Ideally should be same as your GitHub release tag varsion
     description = 'Updated a few..',
     author = 'Dibyendu Maity',
     author_email = 'dibyendumaity1999@bose.res.in',
