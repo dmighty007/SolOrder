@@ -37,7 +37,8 @@
   <h3 align="center">SolOrder</h3>
 
   <p align="center">
-    An awesome README template to jumpstart your projects!
+    A module to calculate various structural order parameter related to water molecules. This project initiated with the aim to 
+    distinguish between different polymorphs of ice.
     <br />
     <a href="https://github.com/dmighty007/SolOrder"><strong>Explore the docs »</strong></a>
     <br />
@@ -100,22 +101,6 @@ Use the `BLANK_README.md` to get started.
 
 
 
-### Built With
-
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -125,29 +110,28 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
+This module uses few optimized modules such as MDAnalysis, pandas, numba, numpy etc. to fast-track the calculation of OPs. They are listed in `requirements.txt` file. You can install them using either pip or conda. Like below...
+* MDAnalysis
   ```sh
-  npm install npm@latest -g
+  pip install MDAnalysis
   ```
 
 ### Installation
 
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
+_You may not need to install the module. Just clone the repository and import them locally. To install the **SolOrder** module globally you can 
+do either of the following ways ._
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+1. Clone the repo
    ```sh
-   git clone https://github.com/your_username_/Project-Name.git
+   git clone https://github.com/dmighty007/SolOrder.git
+   cd SolOrder
+   python setup.py install
    ```
-3. Install NPM packages
+2. Or you can install directly from pypi store..
    ```sh
-   npm install
+   pip install SolOrder
    ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -162,22 +146,6 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- ROADMAP -->
-## Roadmap
-
-- [x] Add Changelog
-- [x] Add back to top links
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
-
-See the [open issues](https://github.com/dmighty007/SolOrder/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
