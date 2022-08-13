@@ -31,7 +31,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/dmighty007/SolOrder">
-    <img src="./images/logo.gif" alt="Logo" width="150" height="150">
+    <img src="./images/logo22.gif" alt="Logo" width="150" height="150">
   </a>
 
   <h3 align="center">SolOrder</h3>
