@@ -78,7 +78,7 @@ class eFingerprint:
         results = gridsearch.self_search()
         self.arr = results.get_pairs()
         self.ox_ids = _np.array(self.identifier[self.identifier == "OW"].index)
-    def localEntropy(self):
+    def Entropy(self):
         """
          Returns projection of entropy on local oxygen atom..
         """
@@ -87,5 +87,23 @@ class eFingerprint:
         loc_entropy = _np.zeros(ox_num)
         for i in _tqdm.trange(ox_num):
             loc_entropy[i] = (_e(self.ox_ids[i],self.arr,self.pos,self.global_rho,self.r,self.rsq,self.sigma,self.prefactor,self.cutoff, self.box))
-        self.localentropy = loc_entropy
+        self.e = loc_entropy
+
+    def localEntropy(self):
+        """
+         Returns projection of entropy on local oxygen atom..
+        """
+        self.Entropy()
+        e = self.e
+        ox_num = len(self.ox_ids)
+        loc_entropy = _np.zeros(ox_num)
+
+        for i in range(ox_num):
+            nn = neighbours(i, self.arr)
+            le = e[i]
+            for n in nn:
+                le += e[n]
+            local_entropy[i] = _np.mean(le)
+
+        self.le = loc_entropy
         
