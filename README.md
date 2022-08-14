@@ -308,8 +308,10 @@ sns.kdeplot(obj.tetra_trans,bw_method = 0.05)
 The local-structure-index (LSI) 18,19 is defined for each molecule i by ordering the
 nearest neighbors j according to increasing distance to reference molecule i as $r_1 <  r_2 <r_3 < ... < r_{n(i)} < 0.37 nm < r_{n(i)+1} $ where $n(i)$ is the number of molecules that are within $0.37 nm $ from molecule i (oxygen atom positions are used). The LSI distinguishes molecules with well separated first
 and second coordination shells from molecules with disordered environment, containing
-molecules in interstitial positions, through the parameter $I(i)$ defined by\\
+molecules in interstitial positions, through the parameter $I(i)$ defined by  
+
 $$ I(i) = \frac{1}{n(i)} \sum_{j=1}^{n(i)}[\Delta(j;i) - \bar{\Delta}(i)]^2 $$
+
 Here $\Delta(j;i) = r_{j+1}- r_j$ and $\bar{\Delta}(i)$ is the average of $\Delta(j;i)$ over all neighbors j of molecule i within the cutoff. A low LSI corresponds to a disordered local environment (HDL) while a
 high LSI indicates a highly structured, tetrahedral coordination (LDL).
 
