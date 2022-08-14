@@ -83,7 +83,7 @@
 <!--[![Product Name Screen Shot][product-screenshot]](https://example.com)-->
 
 *SolOrder* is purposed to calculate simple structural property based order parameter of water molecules in MD simulation output. This module is validated for gromacs output files.   
-Currently it can calculate *Four body structural order parameter* $F_4$ , *Orientational and translational tetrahedral order parameter(OTO & TTO)*, *Local structure index(LSI)*, *Local entropy fingerprints* etc by follwing the protocols specified in the literature so far. There are a lot more order parameters related to water structure and we wish to have them under one roof. Our current interest is to include bond orientational order parameters and SOAP(Smooth Overlap of Atomic Positions) related order paramter to the *SolOrder* module. There's a lot we can actually do to incrase number of ways to accurately detect phases, of which immediates are invoking ideas of molecular graph and ML. 
+Currently it can calculate *Four body structural order parameter* ( $F_4$ ), *Orientational and translational tetrahedral order parameter(OTO & TTO)*, *Local structure index(LSI)*, *Local entropy fingerprints* etc by follwing the protocols specified in the literature so far. There are a lot more order parameters related to water structure and we wish to have them under one roof. Our current interest is to include bond orientational order parameters and SOAP(Smooth Overlap of Atomic Positions) related order paramter to the *SolOrder* module. There's a lot we can actually do to incrase number of ways to accurately detect phases, of which immediates are invoking ideas of molecular graph and ML. 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
