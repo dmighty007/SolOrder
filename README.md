@@ -59,9 +59,6 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
     </li>
     <li>
       <a href="#getting-started">Getting Started</a>
@@ -71,7 +68,6 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -194,11 +190,11 @@ sns.kdeplot(obj.f4, bw_method = 0.05)
 
 
 The below is the most common type of tetrahedral order paramater that is being used. This order parameter uses the four closest water Oxygen neighbors for the calculation. The value of q can rang from 0 to 1, where 0 is for an ideal gas and 1 is for a regular tetrahedron.
-$$q = 1− \frac{3}{8}\sum_{j=1}^3\sum_{k=j+1}^4(cos\phi_{jk}+\frac{1}{3})^2$$
+$$q = 1− \frac{3}{8}\sum_{j=1}^3\sum_{k=j+1}^4(cos\phi_{jk}+\frac{1}{3})^2$$;
 
 
 
-$ q = $ 
+$q =$ 
 
 Orientational tetrahedral order parameter
 
@@ -241,7 +237,7 @@ sns.kdeplot(obj.tetra_trans,bw_method = 0.05)
 The local-structure-index (LSI) is defined for each molecule i by ordering the
 nearest neighbors j according to increasing distance to reference molecule i as 
 
-$ r_1 <  r_2 <r_3 < ... < r_{n(i)} < 0.37 nm < r_{n(i)+1} $ 
+$r_1 <  r_2 <r_3 < ... < r_{n(i)} < 0.37 nm < r_{n(i)+1}$ 
 
 
 where $n(i)$ is the number of molecules that are within $0.37 nm $ from molecule i (oxygen atom positions are used). The LSI distinguishes molecules with well separated first
