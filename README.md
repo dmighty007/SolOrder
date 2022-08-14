@@ -306,7 +306,9 @@ sns.kdeplot(obj.tetra_trans,bw_method = 0.05)
 
 
 The local-structure-index (LSI) 18,19 is defined for each molecule i by ordering the
-nearest neighbors j according to increasing distance to reference molecule i as $r_1 <  r_2 <r_3 < ... < r_{n(i)} < 0.37 nm < r_{n(i)+1} $ where $n(i)$ is the number of molecules that are within $0.37 nm $ from molecule i (oxygen atom positions are used). The LSI distinguishes molecules with well separated first
+nearest neighbors j according to increasing distance to reference molecule i as 
+$ r_1 <  r_2 <r_3 < ... < r_{n(i)} < 0.37 nm < r_{n(i)+1} $ 
+where $n(i)$ is the number of molecules that are within $0.37 nm $ from molecule i (oxygen atom positions are used). The LSI distinguishes molecules with well separated first
 and second coordination shells from molecules with disordered environment, containing
 molecules in interstitial positions, through the parameter $I(i)$ defined by  
 
