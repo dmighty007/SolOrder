@@ -177,7 +177,8 @@ sns.kdeplot(obj.dihedrals, bw_method = 0.05)
 F4 order parameter is a mathematical function of the total number of water molecules and the torsion angle between the O-H bond of two water molecules, such that oxygen atoms of both water molecules have a distance that is less than 0.3 nm. This particular parameter can discriminate between bulk liquid water, ice, and sI crystal. It has a value of -0.4, -0.04, and 0.7 for bulk liquid water, regular ice, and sI hydrate crystals respectively.It is given as..
 
 $$F_4 = \frac{1}{N}\sum(cos3\phi)$$
-
+ The torsion angle $\phi$ is defined as H-O...O-H, for two adjacent water molecules, where the hydrogens have been defined as the outer-most hydrogens in
+the water dimer.
 
 ```python
 obj.F4()
@@ -227,12 +228,7 @@ sns.kdeplot(obj.tetra_trans,bw_method = 0.05)
 
 
 The local-structure-index (LSI) is defined for each molecule i by ordering the
-nearest neighbors j according to increasing distance to reference molecule i as 
-
-$r_1 < r_2 < r_3 < ... < r_{n(i)} < 0.37 nm < r_{n(i)+1}$ 
-
-
-where $n(i)$ is the number of molecules that are within $0.37 nm $ from molecule i (oxygen atom positions are used). The LSI distinguishes molecules with well separated first
+nearest neighbors j according to increasing distance to reference molecule i as $r_1 < r_2 < r_3 < ... < r_{n(i)} < 0.37 nm < r_{n(i)+1}$ where $n(i)$ is the number of molecules that are within $0.37 nm $ from molecule i (oxygen atom positions are used). The LSI distinguishes molecules with well separated first
 and second coordination shells from molecules with disordered environment, containing
 molecules in interstitial positions, through the parameter $I(i)$ defined by  
 
@@ -353,6 +349,7 @@ Below are the references, basically from where the ideas and algorithms are take
 * [Investigating the quasi-liquid layer on ice surfaces: a comparison of order parameters](https://pubs.rsc.org/en/content/articlelanding/2022/CP/D2CP00752E)
 * [Mining of Effective Local Order Parameters to Classify Ice Polymorphs](https://doi.org/10.1021/acs.jpca.1c06685)
 * [Characterization of the Local Structure in Liquid Water by Various Order Parameters](https://doi.org/10.1021/acs.jpcb.5b02936)
+* [Simulations of the methane hydrate/methane gas interface near hydrate forming conditions conditions](https://doi.org/10.1016/0378-3812(95)02903-6)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
