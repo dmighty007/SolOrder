@@ -86,16 +86,8 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
-
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
-* You shouldn't be doing the same tasks over and over like creating a README from scratch
-* You should implement DRY principles to the rest of your life :smile:
-
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
-
-Use the `BLANK_README.md` to get started.
+*SolOrder* is purposed to calculate simple structural property based order parameter of water molecules in MD simulation output. This module is validated for gromacs output files.   
+Currently it can calculate *Four body structural order parameter($F_4$)*, *Orientational and translational tetrahedral order parameter(OTO & TTO)*, *Local structure index(LSI)*, *Local entropy fingerprints* etc by follwing the protocols specified in the literature so far. There are a lot more order parameters related to water structure and we wish to have them under one roof. Our current interest should be including bond orientational order parameters and SOAP(Smooth Overlap of Atomic Positions) related order paramter to the *SolOrder* module. There's a lot we can actually do to incrase number of ways to accurately detect phases, of which immediates are invoking ideas of molecular graph and ML. 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -105,8 +97,6 @@ Use the `BLANK_README.md` to get started.
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
@@ -140,18 +130,12 @@ do either of the following ways ._
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
 _For more examples, please refer to the [Documentation](https://example.com)_
 ```python
 ######## Import two classes from the module...
 from SolOrder import OrderParameter as OP
 from SolOrder import eFingerprint as E
 ```
-
-    <frozen importlib._bootstrap>:228: RuntimeWarning: scipy._lib.messagestream.MessageStream size changed, may indicate binary incompatibility. Expected 56 from C header, got 64 from PyObject
-
-
 
 ```python
 ########## Basic modules....
@@ -189,23 +173,6 @@ obj = OP(u)
 obj.get_dihedrals()
 sns.kdeplot(obj.dihedrals, bw_method = 0.05)
 ```
-
-
-      0%|          | 0/1836 [00:00<?, ?it/s]
-
-
-    /home/dibya/Documents/GitHub/SolOrder/SolOrder/dihedral.py:132: RuntimeWarning: invalid value encountered in arccos
-      return -_np.arccos(_np.dot(abc,bcd)/(_np.linalg.norm(abc)*_np.linalg.norm(bcd)))
-
-
-
-
-
-    <AxesSubplot:ylabel='Density'>
-
-
-
-
     
 ![png](images/output_5_3.png)
     
@@ -221,22 +188,6 @@ obj.F4()
 sns.kdeplot(obj.f4, bw_method = 0.05)
 ```
 
-
-      0%|          | 0/1836 [00:00<?, ?it/s]
-
-
-    /home/dibya/Documents/GitHub/SolOrder/SolOrder/dihedral.py:132: RuntimeWarning: invalid value encountered in arccos
-      return -_np.arccos(_np.dot(abc,bcd)/(_np.linalg.norm(abc)*_np.linalg.norm(bcd)))
-
-
-
-
-
-    <AxesSubplot:ylabel='Density'>
-
-
-
-
     
 ![png](images/output_7_3.png)
     
@@ -245,7 +196,13 @@ sns.kdeplot(obj.f4, bw_method = 0.05)
 The below is the most common type of tetrahedral order paramater that is being used. This order parameter uses the four closest water Oxygen neighbors for the calculation. The value of q can rang from 0 to 1, where 0 is for an ideal gas and 1 is for a regular tetrahedron.
 $$q = 1− \frac{3}{8}\sum_{j=1}^3\sum_{k=j+1}^4(cos\phi_{jk}+\frac{1}{3})^2$$
 
-$q = $ Orientational tetrahedral order parameter
+
+
+$ q = $ 
+
+Orientational tetrahedral order parameter
+
+
 
 $\phi_{jk}= $ Angle formed by the Oxygen atom under consideration & the two nearest neighbor atoms j & k
 
@@ -254,18 +211,6 @@ $\phi_{jk}= $ Angle formed by the Oxygen atom under consideration & the two near
 obj.OTO()
 sns.kdeplot(obj.tetra_orient,bw_method = 0.05)
 ```
-
-
-      0%|          | 0/1836 [00:00<?, ?it/s]
-
-
-
-
-
-    <AxesSubplot:ylabel='Density'>
-
-
-
 
     
 ![png](images/output_9_2.png)
@@ -288,26 +233,17 @@ obj.TTO()
 sns.kdeplot(obj.tetra_trans,bw_method = 0.05)
 ```
 
-
-      0%|          | 0/1836 [00:00<?, ?it/s]
-
-
-
-
-
-    <AxesSubplot:ylabel='Density'>
-
-
-
-
     
 ![png](images/output_11_2.png)
     
 
 
-The local-structure-index (LSI) 18,19 is defined for each molecule i by ordering the
+The local-structure-index (LSI) is defined for each molecule i by ordering the
 nearest neighbors j according to increasing distance to reference molecule i as 
+
 $ r_1 <  r_2 <r_3 < ... < r_{n(i)} < 0.37 nm < r_{n(i)+1} $ 
+
+
 where $n(i)$ is the number of molecules that are within $0.37 nm $ from molecule i (oxygen atom positions are used). The LSI distinguishes molecules with well separated first
 and second coordination shells from molecules with disordered environment, containing
 molecules in interstitial positions, through the parameter $I(i)$ defined by  
@@ -330,19 +266,6 @@ sns.kdeplot(obj.lsi,bw_method = 0.05)
 obj.MinimumAngle()
 sns.kdeplot(np.cos(obj.minAngles),bw_method = 0.05)
 ```
-
-
-      0%|          | 0/1836 [00:00<?, ?it/s]
-
-
-
-
-
-    <AxesSubplot:ylabel='Density'>
-
-
-
-
     
 ![png](images/output_14_2.png)
     
@@ -389,14 +312,6 @@ entropy.localEntropy()
 sns.kdeplot(entropy.le, bw_method = 0.05)
 ```
 
-
-
-
-    <AxesSubplot:ylabel='Density'>
-
-
-
-
     
 ![png](images/output_20_1.png)
 
@@ -426,7 +341,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -435,9 +350,9 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
+Dibyendu Maity - [@your_twitter](https://twitter.com/@MAITYDIBYENDU99) - dibyendumaity1999@bose.res.in
 
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
+Project Link: [https://github.com/dmighty007/SolOrder](https://github.com/dmighty007/SolOrder)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -446,16 +361,10 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
-
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Malven's Grid Cheatsheet](https://grid.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
+Below are the references, basically from where the ideas and algorithms are taken. We might want to benchmark with their results!!
+* [Investigating the quasi-liquid layer on ice surfaces: a comparison of order parameters](https://pubs.rsc.org/en/content/articlelanding/2022/CP/D2CP00752E)
+* [Mining of Effective Local Order Parameters to Classify Ice Polymorphs](https://doi.org/10.1021/acs.jpca.1c06685)
+* [Characterization of the Local Structure in Liquid Water by Various Order Parameters](https://doi.org/10.1021/acs.jpcb.5b02936)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
