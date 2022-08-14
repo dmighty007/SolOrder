@@ -322,24 +322,9 @@ high LSI indicates a highly structured, tetrahedral coordination (LDL).
 obj.LSI()
 sns.kdeplot(obj.lsi,bw_method = 0.05)
 ```
-
-
-      0%|          | 0/1836 [00:00<?, ?it/s]
-
-
-
-
-
-    <AxesSubplot:ylabel='Density'>
-
-
-
-
     
 ![png](images/output_13_2.png)
     
-
-
 
 ```python
 obj.MinimumAngle()
