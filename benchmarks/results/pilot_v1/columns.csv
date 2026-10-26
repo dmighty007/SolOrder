@@ -1,0 +1,40 @@
+column,entry,group,needs_h,smooth,source
+cn,cn,radial,False,False,cutoff count
+cn_smooth,cn_smooth,radial,False,True,rational switching function
+d5,d5,radial,False,False,Cuthbertson & Poole 2011
+lsi,lsi,radial,False,False,Shiratani & Sasai 1996
+vor_density,voronoi,radial,False,False,periodic Voronoi (freud)
+vor_asphericity,voronoi,radial,False,False,periodic Voronoi (freud)
+entropy,entropy,radial,False,True,Piaggi & Parrinello 2017
+entropy_avg,entropy,radial,False,True,Piaggi & Parrinello 2017
+q_tet,q_tet,angular,False,False,Errington & Debenedetti 2001
+q_tet_avg,q_tet_avg,angular,False,False,
+s_k,s_k,angular,False,False,Chau & Hardwick 1998
+bond_angle,bond_angle,angular,False,False,Takahashi 2023
+afs3,afs3,angular,False,False,
+ah1,angle_hist,angular,False,False,
+ah2,angle_hist,angular,False,False,
+ah3,angle_hist,angular,False,False,
+A1,neighborhood,angular,False,False,MALIO A/P/N
+A2,neighborhood,angular,False,False,MALIO A/P/N
+A3,neighborhood,angular,False,False,MALIO A/P/N
+f4,f4,hbond,True,False,Rodger et al. 1996
+n_hb,n_hb,hbond,True,False,Luzar & Chandler 1996
+zeta,zeta,hbond,True,False,Russo & Tanaka 2014
+ring_mean,rings,hbond,True,False,King 1967; Guttman 1990
+ring_f4,rings,hbond,True,False,King 1967; Guttman 1990
+ring_f5,rings,hbond,True,False,King 1967; Guttman 1990
+ring_f6,rings,hbond,True,False,King 1967; Guttman 1990
+ring_f7,rings,hbond,True,False,King 1967; Guttman 1990
+ring_f8,rings,hbond,True,False,King 1967; Guttman 1990
+q3,steinhardt,bond_orientational,False,False,Steinhardt 1983; Lechner & Dellago 2008
+q3_avg,steinhardt,bond_orientational,False,False,Steinhardt 1983; Lechner & Dellago 2008
+q4,steinhardt,bond_orientational,False,False,Steinhardt 1983; Lechner & Dellago 2008
+q4_avg,steinhardt,bond_orientational,False,False,Steinhardt 1983; Lechner & Dellago 2008
+q6,steinhardt,bond_orientational,False,False,Steinhardt 1983; Lechner & Dellago 2008
+q6_avg,steinhardt,bond_orientational,False,False,Steinhardt 1983; Lechner & Dellago 2008
+w4_hat,steinhardt,bond_orientational,False,False,Steinhardt 1983; Lechner & Dellago 2008
+w6_hat,steinhardt,bond_orientational,False,False,Steinhardt 1983; Lechner & Dellago 2008
+xconn6,xconn6,bond_orientational,False,False,ten Wolde et al. 1996
+csp,csp,template,False,False,Kelchner et al. 1998
+ndp,ndp,template,False,False,
