@@ -1,0 +1,286 @@
+\chapter{Order parameters and Ice phases}\label{ch:Background}
+
+Order parameters play a pivotal role in deciphering the complex landscape of ice phases. They provide a quantitative means to differentiate between distinct arrangements of water molecules, enabling researchers to precisely characterize and classify different phases. As our understanding of these order parameters evolves, they continue to guide the exploration of ice behavior, phase transitions, and the underlying molecular mechanisms driving these transformations.Ice, despite its seemingly simple composition of water molecules, can exist in numerous distinct phases, each characterized by unique arrangements of molecules and hydrogen bonding networks. These phase transitions involve intricate changes in molecular order, symmetry, and connectivity.An order parameter serves as a quantitative metric that captures specific structural features or characteristics of a given phase. By calculating and analyzing these order parameters, we can discern subtle variations in the arrangement of water molecules, the geometry of hydrogen bonding networks, and the overall symmetry of the crystal lattice. This allows for a systematic classification and differentiation of the various ice phases.
+It is evident that simple order parameters cannot acomplish the job for us. The same can be represented using the figure below, where RDF of different ice phases along with the average oxygen-oxygen distance distribution is plotted.
+  \begin{figure}[H]
+  \centering
+  \includegraphics*[width=.9\linewidth]{background/rdf.png}
+    \caption{(a)Average oxygen to oxygen distance distribution and (b)radial distribution function of the same phases are shown for comparison.}
+  \label{fig:IceIh}
+  \end{figure}
+In the subsequent section we will provide a number of order parameter that can be used in this scenario and a qualitative comparison between them. 
+
+\section{Density and Coordination number(CN)}
+Density, a pivotal property, acts as an order parameter during ice-water transitions\cite{Limmer2014}. Altering temperature and pressure shifts water molecules between ice's structured lattice and water's fluid arrangement. This transition is marked by density changes.
+
+In ice-to-water shift, higher temperature or lower pressure weakens hydrogen bonds, breaking ice's lattice. Average molecule distance increases, lowering density. Water-to-ice switch involves lower temperature or higher pressure, creating a more ordered structure and higher density. But when considering about ice to ice transitions density serves very little as all ice phases are very closely packed. But density is highly correlated with pressure and it can play a role as global paramrter of the transition.\\
+Similarly coordination number(CN), which captures local arangements of a oxygen atom is used sometimes. Intuitively coordination number represents the number of atoms around the reference atoms within certain specific cutoff(predetermined)\cite{Zimmermann2017}.
+It can be computed from the radial integral of the radial distribution function (RDF). In order to have a smooth and continuous definition of the coordination number, usually a switching
+function is used, commonly done in the construction of different types of collective variables \cite{Nelson1996} \cite{Bonomi2009}
+\[CN = \sum_{j=1}^N \frac{1-(r_j/r_{cut})^{12}}{1-(r_j/r_{cut})^{28}}\] 
+where $r_j$ is the distance between a central oxygen atom and atom j.
+When used, it can have large ambiguity defining specific ice environment as geometrically completely different ice environment can have same number of neighbors.
+\section{Polyhedra Template Matching(PTM)}
+The polyhedral template matching (PTM) method is adept at identifying the topology of the local atomic environment\cite{Larsen2016}. This is achieved by seeking the most fitting structural match using the root mean square deviation (RMSD) between an unclassified topology and potential template structures. This technique has proven its exceptional robustness, especially under high-temperature conditions, where variations in bond lengths can impact methods relying on distance cutoff for defining nearest neighbors. But this method requires aprior knowledge about all the phases to compare and as RMSD has an inherent problem of degeneracy this method suffers to uniquely define the ice phases.
+
+\section{Orientational Tetrahedral Order Parameter(Q)}
+The tetrahedral order parameter is a useful tool for studying the structure and properties of water\cite{CHAU_1998}\cite{Galamba_2013}\cite{Giovambattista_2005}\cite{Yan2007}. Water molecules have a tetrahedral arrangement due to the hydrogen bonding between water molecules. The tetrahedral order parameter measures the degree of local ordering in the system, specifically the degree to which water molecules are arranged in a tetrahedral configuration.
+The tetrahedral order parameter has been used extensively in the study of water\cite{Errington2001} \cite{Jedlovszky2008}. One of the applications of the order parameter is to analyze the structure of water near hydrophobic surfaces. When water molecules are in contact with a hydrophobic surface, they tend to form ordered structures that are different from bulk water. Another application of the tetrahedral order parameter in water is the study of the behavior of liquids under confinement. When water is confined to a small space, such as a nanopore or a biological membrane, its properties can be different from bulk water. By using the order parameter, we can investigate the structural properties of confined water and how they differ from bulk water.It has been used extensively to analyze the behavior of water near surfaces, in confined spaces, and in biological systems. The order parameter provides valuable insights into the local ordering of water molecules.
+The mathematical formulation of tetrahedral order parameter has the below form:
+\[ Q(i) = 1 - \frac{3}{8}\sum_{j=1}^3 \sum_{k = j+1}^4(cos\phi_{jk} + \frac{1}{3})^2 \]
+This order parameter uses the four closest water Oxygen neighbors for the calculation, and $\phi_{jk}$ is the angle formed by the oxygen atom under consideration and the two nearest neighbor atoms j and k.
+\begin{figure}[H]
+\centering
+\includegraphics*[width=.8\linewidth]{background/Tetra_Orient.png}
+\caption{(a)Probability distribution of the orientational tetrahedral order parameter for various ice phases and (b)schematics of the order parameter.}
+\label{fig:Q_tetra}
+\end{figure}
+When projected the data of various ice phases, however the order parameterdoes not justify the phases. There is much more overlapping regions and only a few ice phases are separated out.\\
+The locally averaged tetrahedral order parameter $\bar{Q}$ is defined as 
+
+\[\bar{Q}(i) = \frac{1}{N+1} \sum_{j \in {N}_b(i)} Q(j) \]
+In addition, there is one more similar order parameter which captures the quadrapole interactions \cite{Abascal2007} and is defined as:
+\[ Q_T = \frac{3(r_{OH}sin\theta)^2}{4r_{OH} cos\theta} \mu\]
+where $2\theta$ is the $H-O-H$ angle, $\mu$ is the dipole moment and $r_{OH}$ the bond length.\\
+\section{Translational Tetrahedral Order Parameter}
+Similar to orientational tetrahedral order. But here, the variance of the radial distnace between the central water oxygen atom and the four nearest neighbors are calculated\cite{CHAU_1998}. The value of $S_k$ is close to 1 and equals to 1 for the perfect tetrahedron. As the local tetrahedral nature increases, $S_k$ becomes more closer to 1.
+Mathematically, 
+\[ S_k = 1 - \frac{1}{3}\sum_{k=1}^4\frac{(r_k - \bar{r})}{4\bar{r}^2}\]
+
+Here $r_k$ is the radial distance from the cental oxygen atom to the $k^{th}$ peripheral closest neighbor and $\bar{r}$ is the arithmatic mean of the four radial distances.While this translational tetrahedral order is much less used than the orientational order Q, it was shown to be more sensitive than Q to density fluctuations and it is frequently combined with other order parameters\cite{Jedlovszky_1999}. It serves no purpose when describing ice phases as the value of the order parameter for different ice phases are closely similar and approaches 1 with pretty low variance.
+\section{Entropy Fingerprints}
+The concept of the 'entropy fingerprint'\cite{Piaggi2017} involves the consideration of the dominant two-body term contribution, referred to as "pair entropy" ($S_2$)\cite{Saija2003}\cite{Truskett2000}, in which only the radial pair distribution function ($g(r)$) for the oxygen-oxygen interactions is approximated. This is represented by the equation:
+\[ S_2 = -2 \pi \rho k_B \int_0^{\infty} [g(r)ln(g(r))-g(r)+1] r^2 dr \]
+Here, $\rho$ denotes the system's density, $g(r)$ is the radial pair distribution function, and $k_B$ is the Boltzmann constant. In the analysis of ice phases, the entropy is a global property, but to define a local order parameter for each particle i, it is projected as follows:
+\[ e(i) = -2 \pi \rho k_B \int_0^{r_m} [g_m^i(r)ln(g_m^i(r))-g_m^i(r)+1] r^2 dr\]
+To obtain a continuous and differentiable order parameter, the radial distribution function $g^i_m(r)$, centered on particle i, can be smoothed using Gaussians with a finite width (e.g., 0.15 \AA). In this context, $r_m$ represents an upper integration limit, typically set to 5.0 \AA, although in a strict entropy definition, it should approach infinity.
+  \begin{figure}[H]
+  \centering
+  \includegraphics*[width=.8\linewidth]{background/entropy_finger.png}
+    \caption{(a)Probability density distribution of entropy fingerprint of ice phases and (b) local entropy of the individual oxygen atoms considering fluctuations of hydrogens.}
+  \label{fig:IceIh}
+  \end{figure}
+For enhanced resolution between different environments, a locally averaged entropy (le) can be defined as follows:
+\[ le(i) = \frac{1}{N_b(i) + 1} \sum_{j=0}^{N_b(i)}e(j)\]
+In this equation, the sum runs over the $N_b(i)$ neighbors of particle i, including particle i itself. The summation over the first neighbors is achieved using the same switching function employed for the Steinhardt parameters.\\
+Entropy fingerprint has been successful in multiple case scenario. Inspired by these facts, people have used these order paramters in this phenomena as well. When projected the ice phases in entropy space few of the phases are really well separated, which shows promising hope but on a gross scale there are lot of ice phases which overlaps in this space. Local entropy fingerprints seems to be working better than entropy fingerprints and the ice phases are quite well separated.
+
+\section{Local neighborhood parameters}
+The neighborhood parameter A was developed by Honeycutt and Anderson\cite{Honeycutt1987}\cite{Maras2016} and further modified by Radhi and Behdinan\cite{Radhi2017} to characterize the crystal structure of a Lennard-Jones fluid based on the distance between the pair particles and neighbor particles. A  is expressed as 
+\[ A'^1_M(i) = \frac{1}{N} \sum_{j\in N_b(i)} |\sum_{k \in N_b(i,j)} (\textbf{r}_{ik} + \textbf{r}_{jk})|^2 \]
+\[ A'^2_M(i) = \frac{1}{N} \sum_{j\in N_b(i)} |\sum_{k \in N_b(i,j)} (\textbf{r}_{ij} + \textbf{r}_{kj})|^2 \]
+\[ A'^3_M(i) = \frac{1}{N} \sum_{j\in N_b(i)} |\sum_{k \in N_b(i,j)} (\textbf{r}_{ij} + \textbf{r}_{kj})|^2 \]
+Where $N_b(i)$ is an array that stores the identifiers of neighbor particles of particle i in order of decreasing distance from particle i, $N_b(i,j)$ is an array of identifiers of mutually neighboring particles of particle i and j, N and M denote the number of elements in arrays $N_b(i)$ and $N_b(i,j)$ and $\textbf{r}_{ij}$ is a vector from particle j to particle i. A is then locally averaged to improve the accuracy of molecular strict classification.
+\[ \bar {A}_M ^l = \frac{1}{N+1} \sum_{j \in \tilde{N}_b(i)} A_M^l(j)\]
+where the superscript 'l' indicates the variation from 1 to 3, and $\tilde{N}_b(i)$ is an array of identifiers of neighboring particles and particle i. The local averging is based on $\tilde{N}_b$ and did not lead to an increase in the effective number of neighboring particles. 
+\section{Bond-angle order parameter}
+The bond-angle order parameter, B was used by Ackland and Jones\cite{Ackland2006} to identify dislocation defects in colloidal suspensions, based on the bond angle between the central particle and its neighbors. B is expressed as 
+\[B_{n_1, n_2, \phi}(i)  = \frac {1}{N(N-1)/2} \sum_{j > k \in N_b(i)} f(\theta_{jik})\]
+where $\theta_{jik}$ is the angle between $\textbf{r}_{ij}$ and $\textbf{r}_{ik}$, $n_1$ and $n_2$ are positive integers, and $\phi$ is an offset angle. The locally averaged bond-angle order parameter $\bar{B}$ is defined as
+\[ \bar{B}_{n_1, n_2, \phi}(i) = \frac{1}{N+1}\sum_{j \in \tilde{N}_b(i)} B_{n_1, n_2, \phi}(j)\]
+\section{Centrosymmetry parameter}
+The centrosymmetry parameter C was used by Kelchner and co-workers\cite{Kelchner1998} to analyze dislocation and defects on metal surafece bases on the distance between the central particle and its neighbors. Mathematically C is defined as 
+\[C(i) = \sum_{j \in N'_b(i)} |\textbf{r}_{ij} + \textbf{r}_{ik}|^2 \]
+where $N'_b(i)$ is an array of identifiers of neighbor particles of half of $N_b(i)$ in order of nearest-neighbor from particle i, $N'$ denotes the number of elements in array $N'_b(i)$, and k satisfies the relation $k = j + N – N'$. The locally averaged centrosymmetry parameter $\bar{C}$ is defined as
+\[\bar{C}(i) = \frac{1}{N+1} \sum_{j \in \tilde{N}_b(i)} C(j)\]
+
+\section{Neighbor distance parameter}
+The neighbor distance parameter D was used by Stukowski\cite{Stukowski2012} to identify the crystal structure at grain boundaries by introducing a scale factor related to the neighbor distances. D is expressed as
+\[D_{f_\alpha, f_\beta, f_\gamma}(i) = \frac{1}{N(N-1)/2} \sum_{j>k \in N_b(i)} f_\alpha(r_{ij})f_\beta(r_{ik})f_\gamma(r_{jk}) \]
+
+where r is the interparticle distance, and $f_\alpha$, $f_\beta$, and $f_\gamma$ are the scale factor functions of r. In principle $f_\alpha$, $f_\beta$, and $f_\gamma$ could be freely defined by users as scalar functions of r. The locally averaged neighbor distance parameter $\bar{D}$ is defined as  
+
+\[\bar{D}_{f_\alpha, f_\beta, f_\gamma}(i) = \frac{1}{N+1} \sum_{j \in \tilde{N}_b(i)} D_{f_\alpha, f_\beta, f_\gamma}(j) \]
+\section{Angular Fourier series parameter}
+The angular Fourier series parameter F was developed by Bartok and co-workers\cite{Bartk2013}\cite{Seko2018} to analyze potential energy surfaces in bulk crystals and in silicon, based on periodic properties of the structure. F is expressed as
+\[F_{a,f_\alpha, f_\beta}(i) = \frac{1}{N(N-1)/2}\sum_{j>k \in N_b(i)} f_\alpha(min(r_{ij}, r_{ik})) cos(a\theta_{jik}) \]
+where a is an angular factor. The locally averaged angular Fourier series parameter $\bar{F}$ is defined as
+
+
+\[\bar{F}_{a, f_\alpha, f_\beta}(i) = \frac{1}{N+1} \sum_{j \in \tilde{N}_b(i)} F_{a,f_\alpha, f_\beta}(j) \]
+\section{Angle histogram parameter}
+The angle histogram parameter H \cite{DoiTaka2019}
+\[H_\nu(i) = FT_{ampl.}(h(\theta_{ijk}))\delta(\tau - \nu)\]
+where $FT_{ampl.}$ is the amplitude function after a Fourier transform, h is a function representing the histogram, $\delta$ is the Dirac delta function, and $\nu$ is the frequency of the Dirac delta function.he locally averaged angle histogram parameter $\bar{H}$ is defined as
+\[ \bar{H}_\nu(i) = \frac{1}{N+1}\sum_{j \in \tilde{N}_b(i)}H_\nu(i) \]
+\section{Local Structure Index(LSI)}
+The LSI (Local Structure Index) is designed to quantify the gap between the first and second hydration shells surrounding a water molecule\cite{Shiratani1996}. To compute the LSI, the oxygen-oxygen distances between the central water molecule and its ith water neighbor are arranged in ascending order, denoted as $r_1 < r_2 < ... < r_i < r_{i+1} < ... < r_n < 3.7 \AA < r_{n+1}$. The formula for LSI is given by:
+\[ LSI = \frac{1}{n} \sum_{i=1}^n (\Delta(i) - bar{\Delta})^2\]
+Here, $\Delta(i)$ represents the difference between $r_{i+1}$ and $r_i$, while $\bar{Delta}$   denotes the arithmetic mean of $\Delta(i)$. By focusing on the translational order and exploring the local structure beyond the first hydration shell, the LSI has proven particularly useful in studying the structure of supercooled water, protein hydration shells, and water near hydrophobic interfaces\cite{Shiratani1998}\cite{Wikfeldt2011}.
+  \begin{figure}[H]
+  \centering
+  \includegraphics*[width=.8\linewidth]{background/LSI.png}
+  \caption{Probability density distribution of LSI of ice phases: comparison}
+  \label{fig:IceIh}
+  \end{figure}
+  When we compute local structure index of the oxygen atoms in various ice phases, we observed significant overlapping, mostly clustering iceIh, iceIc together and other phases near zero.
+
+
+\section{Four Body Structural Order Parameter ($F_4$)}
+
+The four body structural order parameter or widely popular the $F_4$ order parameter clearly distinguishes between various gas hydrates and bulk liquid water at thermodynamic condition of gas hydrate forming\cite{Rodger1996}. Mathematically it is defined as
+\[ F_4 = <cos(3\phi)> \]
+  \begin{figure}[H]
+  \centering
+  \includegraphics*[width=.8\linewidth]{background/f4.png}
+    \caption{(a)overlapping of the $F_4$ order parameter and (b) schematics of the formulation of the parameter }
+  \label{fig:IceIh}
+  \end{figure}
+
+It has very distinct values for different phases, e.g., bulk water has -0.04 value of the average $<F_4>$  order parameter while hydrate cage like structure has positive 0.7 value\cite{Jimnezngeles2014}\cite{Rodger1996}. Also tetrahedral ice yields -0.4 value. This order parameter has been extensively used to probe local and global nature of water structure. Sometimes it is called as the 'Water Dimer Dihedral Angle Parameter' due to its mathematical formulation, which is constructed using the dihedral angle between two water dimer. This order parameter is well suited for hydrate-water system and can clearly distinguishes iceIh from hydrates, due to its sensitivity towards presence of planar ring structures in hydrates.\\
+Despite its success in quantifying gas hydrates from liquid water and thus describing the nucleation event, the $F_4$ order parameter fails to differentiate between different ice phases. It is basically the random hydrogen bond network formed between the molecules obeying 'ice rule'. From figure, we can see significant overlapping in different ice phases thus the $F_4$ order parameter is not a good order parameter when talking about ices.  
+\section{$d_5$: Distance of fifth nearest oxygen atom}
+Distance of fifth nearest oxygen atom from the reference is sometimes used to compare various phases due to its connection with the distance of the second solvation shell of the aforementioned phases\cite{SaikaVoivod2000}\cite{Cuthbertson2011}\cite{Tanaka2019}. The $d_5$ parameter was designed
+in order to quantify fluctuations that occur between the first and second hydration shell. Specifically, a larger $d_5$ has been interpreted as a water environment that is more open and
+low-density like, while smaller values of $d_5$ as compact and high-density like.
+\section{Voronoi density and asphericity}
+Besides variables that quantify correlations in the water network, there have also been measures to quantify local density using variations of the Voronoi volumes which probes the free-space in the network and hence the density\cite{Medvedev1989}. 
+  \begin{figure}[H]
+  \centering
+  \includegraphics*[width=.8\linewidth]{background/asphericity.png}
+    \caption{(a)Probability density distribution of local density of the individual oxygen atom based on voronoi polyhedra and (b) asphericity of the same voronoi polyhedra}
+  \label{fig:IceIh}
+  \end{figure}
+The volume V is calculated using the Voronoi cell associated with the water molecule, i.e. it is the volume of the polyhedron including all points in space which are closer to the oxygen atom under consideration than to any other heavy atom in the system\cite{BERNAL1959}\cite{Stirnemann2012}. With this approach, the density is determined with a spatial resolution finer than the intermolecular distance. The Voronoi polyhedra have been extensively used to characterize the structure of liquids, of liquid and supercooled water,  of aqueous mixtures and of protein hydration shells. Density is than defined as reverse of volume, i.e.,
+\[ \rho = \frac {1}{V} \]
+
+The shape of the Voronoi polyhedron is conveniently characterized by the asphericity parameter, defined as 
+\[ \eta = \frac {A^3}{36 \pi V^2}\]
+where V and A are, respectively, the volume and area of the polyhedron. $\eta$ values range from 1 for a perfect sphere to 2.25 for iceIh and 3.31 for a regular tetrahedron\cite{Ruocco1992}. The asphericity specifically reports on the shape of the polyhedron and is independent of the size of the polyhedron, that is, of the local density. It has been widely employed to characterize the local structure of liquid and especially supercooled and supercritical water, together with the hydration structure of small hydrophobic solutes. (The same parameter, designated as the isoperimetric quotient, has also been used in a different context to predict the type of complex structures formed by building blocks with different shapes).
+
+\section{Number of Hydrogen Bonds ($N_{HB}$)}
+In this context, the 'Number of Hydrogen Bonds' assumes a crucial role as a pivotal order parameter, given that distinct ice phases find stabilization through the specific hydrogen network formed by water molecules. While various definitions of hydrogen bonds exist, Luzar and Chandler's geometric hydrogen bonding criteria define such bonds between two water molecules when the distance between their donating and accepting oxygen atoms ($O_D$ and $O_A$) measures $leq 3.5 \AA$, and the angle formed by the bond vectors $H_D-O_D$ and $O_D-O_A$ is $ < 30\degree$ \cite{Luzar1996} \cite{Luzar1996_1}. This metric facilitates insights into hydrogen bonding dynamics during transitions, a key factor in understanding the structural alterations and stabilization mechanisms within ice phases. By tracking hydrogen bond counts, a comprehensive assessment of phase evolution becomes attainable, carrying implications across diverse disciplines, from materials science to climatology.
+
+\section{Water–Water Angular Distribution Function $P(\theta)$}
+The $\theta$ angle is defined as the smallest O...O-H angle formed between two adjacent water molecules. Although $\theta$ is commonly referred to as the hydrogen-bond angle, it's important to note that the pair of water molecules being considered might not always be connected by a hydrogen bond\cite{Sharp2009}. The distribution of $\theta$ angles' probabilities has found utility in describing the local structural arrangement of water molecules. This application spans various contexts, including bulk water, water near hydrophobic interfaces, and water molecules surrounding protein hydration shells. Similar concepts have also been employed to assess the strength of hydrogen bonds between water and anions\cite{Stirnemann2013}.\\
+
+The focus of analysis is not limited to the instantaneous $\theta$ value; rather, it centers on the shape of the $P(\theta)$ distribution. This is particularly applicable in the examination of structural changes induced by temperature reduction and the introduction of hydrophobic groups\cite{Sharp2001}.
+The low $\theta$ value indicates the linearity and thus the strength of hydrogen bonds, although it doesn't provide information about the overall tetrahedral arrangement of the molecular shell. The high $\theta$ value, on the other hand, doesn't correspond to a distorted hydrogen bond; instead, it corresponds to second-shell water molecules that lack a hydrogen bond with the central water molecule but are bonded to their nearest neighbors.
+
+\section{Bond Orientational Order Parameters (Steinhardt’s Order Parameter)}
+Local bond order parameters based on spherical harmonics, also known as Steinhardt order parameters, are often used to determine crystal structures in molecular simulations\cite{Plimpton1995}.
+The Steinhardt order parameter is a tool used to quantify the local order of a system of particles.They classify the phase of an atom or molecule based on the coherence of its orientational order with that of its neighbors. It is particularly useful for analyzing the structure of ice, which is a crystalline solid that exhibits a high degree of local order\cite{Reinhardt2012}.
+The Steinhardt order parameter is calculated by first identifying the nearest neighbors of each particle. Then, the angles between the vectors connecting the particle to its nearest neighbors are calculated. These angles are used to compute a set of rotationally invariant combinations of spherical harmonics. The Steinhardt order parameters are then calculated from these spherical harmonics\cite{Lechner2008}. For the oxygen of molecule i, the rotationally invariant order l Steinhardt paramrter $q_l(i)$ is defined as 
+\[ q_l(i) = \sqrt{\frac {4\pi}{2l+1}\sum_{m=-l}^l|q_{lm}(i)|^2} \]
+
+where the $(2l + 1)$ complex components, $q_{lm}(i)$, are 
+\[ q_{lm}(i) = \frac{1}{N_b(i)} \sum_{j=1}^{N_b(i)} Y_{lm}(\textbf{r}_{ij})\]
+Here $ N_b(i) $ is the number of nearest neighbors within a chosen cutoff distance and $ Y_{lm}(\textbf{r}_{ij})$ are the spherical harmonics calculated for the vector 
+ $ \textbf{r}_{ij} $ connecting molecule i to the neighboring molecule j. An improved distinction between atomic environment is obtained with the averaged form of $ q_l $
+\[\bar{q}_l(i) = \sqrt{\frac{4\pi}{2l+1}\sum_{m=-l}^l |\bar{q}_{lm}(i)|^2}\]
+where the $q_{lm}$ vector of molecule i is averaged with that of its nearest neighbors and itself. 
+\[ \bar{q}_{lm}(i) = \frac{1}{N_b(i) + 1} \sum_{j=0}^{N_b(i)} q_{lm}(j)\]
+Steinhardt parameters are extremely sensitive to the choice of nearest neighbor scheme and the value of cutoff for nearest neighbor search. There are many ways of choosing nearest neighbors of a reference atom, e.g., fixed radius cutoff, fixed number of neighbors nearesrt to the reference, Voronoi diagram and its dual, the Delaunay graph etc\cite{Mickel2013}.
+  \begin{figure}[H]
+  \centering
+  \includegraphics*[width=.9\linewidth]{background/steinhardt.png}
+    \caption{(a)Projections of the various ice phases on $q_4 - q_6$ space and (b) $q_4 -q_8$ space without considering hydrogen atoms.(c) Ice phases in $\bar{q}_3-\bar{q}_4$ space when considering orientations of hydrogens. (d) Schematics of the angle used in calculation of steinhardt's order parameter.(e) and (f) represents two neighbor selection scheme }
+  \label{fig:IceIh}
+  \end{figure}
+The Steinhardt order parameters have been used to study the structure of local environment in a variety of crystal structures\cite{Lechner2008}. They have been used to show that different crystal structures exhibit different degrees of local order. However, one disadvantage of the Steinhardt approach is that the choice of the order of the spherical harmonics relies on intuition and advanced knowledge of the underlying structures, they are poor at distinguishing phases which contain multiple distinct local spatial environments within each phase.\\
+In our case we used the averaged order parameters $\bar{q}_l$'s to specify the boundaries between phases, and observed that $\bar{q}_3$ and $\bar{q}_4$ works well than most other variant of this order parameter. From figure X, we can conclude that in $\bar{q}_3-\bar{q}_4$ space Ice-Ih, Ice-Ic, Ice-VII, Ice-XII, Ice-XVII etc are well separated but they mostly overlaps with liquid water. \\
+There are many variants and derivatives of steinhardt order parameter. One such example can be 'the number of crystalline connection'\cite{tenWolde1996} derived using the dot products of 
+\^{q}$_l(i)$ and \^{q}$_l(j)$ where i and j are neighbors. Mathematically, 
+\[ n_{connections}(i) = \sum_{j=1}^{N_b(i)} H(d_l(i,j) - d_c)\]
+where H is the heaviside step function, and the rotationally invariant function 
+\[ d_l(i,j) = \hat{q}_l(j) . \hat{q}_l(j)\]
+and $d_c$ is a critical threshold defined by intution or observation. The number of connections should be higher in the solid phase than in the liquid
+phase, and a criterion involving a threshold minimum number
+of connections to distinguish between the two phases is often
+a good classification parameter.
+$q_l$'s are second order steinhardt invariants, however third order invariants can also be constructed\cite{Lechner2008}:
+\[\hat{w}_l(i) = w_l(i) \times (\sum_{m=-l}^l|q_{lm}(i)|^2)^{-3/2}\]
+where 
+\begin{gather}
+  w_l(i) = \sum_{m_1, m_2,m_3} 
+  \begin{pmatrix} 
+    l & l & l \\
+    m_1 & m_2 & m_3
+  \end{pmatrix}
+  q_{lm_1}(i)q_{lm_2}(i)q_{lm_3}(i)
+\end{gather}
+The qunatities 
+\begin{gather}
+  \begin{pmatrix}
+    l & l & l \\
+    m_1 & m_2 & m_3
+  \end{pmatrix} 
+\end{gather}
+are called Wigner-3j symbols.
+
+\section{CHILL and $CHILL+$}
+Within this approach, the differentiation between molecules within the crystalline or liquid phases hinges upon the extent of coherence in their orientational arrangement with neighboring molecules\cite{Moore2010}. This analysis accentuates the importance of assessing the consistency of local ordering rather than merely observing the ordering itself, a crucial distinction when discerning ice from deeply supercooled liquid water. As cooling progresses, the structure of the latter transitions towards a more tetrahedral arrangement, akin to a stochastic tetrahedral network in its glassy state.
+The classification of molecules is predicated on the alignment of their orientations relative to those of their four nearest neighbors, resulting in four distinct groups:
+\begin{enumerate}
+\item C: Molecules affiliated with the cubic ice phase possess all their bonds with the four closest neighbors in a staggered arrangement. To accommodate thermal fluctuations, a bond is considered staggered if its angular deviation from the optimal staggered configuration is within 0.8 radians.
+\item H: Molecules linked to the hexagonal ice phase exhibit three staggered bonds (angular deviation within 0.8 radians) and one eclipsed bond (angular deviation between 0.2 and 0.05 radians) with their four nearest neighbors.
+\item I: This category encompasses molecules belonging to the ice phase that don't entirely fulfill the strict criteria for H or C. Such instances are common at the surfaces of crystallites. Classification as I occurs under two circumstances: (i) molecules with only two staggered bonds and at least one neighbor possessing more than two staggered bonds, or (ii) molecules with three staggered bonds, devoid of eclipsed bonds, and at least one neighbor with two staggered bonds. The latter condition is integral for detecting ice within non-compact crystallites.
+\item L: Constituent molecules of the liquid or amorphous phase fall into this group. Such molecules deviate from the criteria outlined above. The "L" designation signifies the amorphous nature observed in the liquid phase. The mobility of L molecules aids in distinguishing between the liquid and glass states (e.g., LDA).
+\end{enumerate}
+In the context of CHILL+ \cite{Nguyen2014}, this method further identifies water molecules in either the liquid or crystalline phases by gauging the correlation in orientational order between a water molecule and its four nearest neighbors. CHILL+ is an expansion of the CHILL algorithm, which identifies ice but not clathrates. To differentiate between cubic ice, hexagonal ice, clathrate hydrates, and the liquid, CHILL+ relies on the count of staggered and eclipsed water-water bonds. For cubic ice (ice Ic), all four water-water bonds for each molecule are staggered. In contrast, hexagonal ice (ice Ih) has three staggered bonds (in the basal plane) and one eclipsed bond (parallel to the crystal's c-axis) for each molecule. Conversely, in clathrate hydrates, each water molecule engages in four eclipsed bonds.\\
+
+A multitude of traditional order parameters, conceptualized upon intuitive foundations, have been meticulously formulated to serve precise and predetermined objectives. Yet, these parameters come with a notable drawback – their computational demands are considerable, requiring substantial computational resources and an intricate grasp of the intricacies inherent to the system being studied. This requirement for in-depth knowledge can be a significant hindrance, particularly when dealing with complex molecular systems.\\
+In the backdrop of these challenges, a perceptible paradigm shift has taken shape over the course of the last decade. The scientific community has witnessed a compelling move towards the integration of machine learning (ML) and data-driven methodologies to confront the intricate challenges embedded within the realm of molecular simulation. This transformative trend has not only marked a departure from traditional intuition-driven approaches but has also exhibited a transformative potential for effectively surmounting these previously formidable obstacles.\\
+The adoption of ML and data-driven techniques has yielded a cascade of remarkable achievements. These approaches have demonstrated an exceptional capacity to extract meaningful insights from vast and intricate datasets, rendering previously intractable tasks more approachable. The inherent adaptability of ML models allows them to capture intricate relationships and patterns within molecular systems, enabling researchers to gain novel perspectives on system behavior, interactions, and emergent properties.\\
+\section{Descriptor}
+In the context of molecular simulations, a descriptor is a mathematical function that encodes information on the local environment of atoms. Descriptors are used in machine-learning models to represent the chemical and physical properties of molecular systems. They can be used to predict various properties of molecules, such as their stability, reactivity, and interactions with other molecules. Descriptors can be based on various features of the molecular system, such as the positions and types of atoms, the distances between atoms, and the angles between bonds. The choice of descriptor depends on the specific problem being addressed and the available data.\\ 
+There are several prerequisites that contribute to effective descriptors in atomistic machine learning. The subsequent attributes are of utmost significance in defining an optimal descriptor:
+\begin{itemize}
+  \item Invariance concerning spatial translations within the coordinate system: maintaining the space's isometric nature.
+  \item Invariance regarding rotational changes in the coordinate system: preserving the spatial isotropy.
+  \item Invariance towards the permutation of atomic indices: ensuring that altering the atom enumeration does not impact the system's physical properties.
+
+  \item Uniqueness: establishing a singular method for constructing a descriptor from an atomic structure, with the descriptor exclusively corresponding to a single property.
+
+  \item Continuity: guaranteeing that minor modifications in the atomic structure result in gradual adjustments to the descriptor.
+
+  \item Conciseness: encapsulating sufficient system information within the descriptor to enable accurate predictions, while minimizing the number of features utilized.
+
+  \item Computational efficiency: ensuring that the computation of the descriptor is significantly swifter than any existing computational model designed to directly calculate the desired physical property.  
+
+\end{itemize} 
+
+\section{Smooth Overlap of atomic positions(SOAP)}
+SOAP serves as a local descriptor that meticulously captures the intricate details of the immediate spatial environment surrounding a specific point.
+SOAP has emerged in the past few years as a powerful method to describe the local environments of atoms and molecules, allowing for a wide range of applications from the study of structural properties of organic molecules \cite{De2016}\cite{Maksimov2020} and, very recently,the properties of liquid water\cite{Monserrat2020}\cite{Capelli2022}\cite{OffeiDanso2022}.\\
+Its primary function is to effectively eliminate redundancies associated with rotation and permutation by intricately incorporating the overlap of smoothed atomic positions. This is achieved through the process of Gaussian smearing, followed by a transformation into coefficients utilizing an orthonormal basis function system\cite{Himanen2020}.
+The methodology behind SOAP entails a series of precise steps:
+The positions of atoms are inherently discrete entities within the three-dimensional space. However, to facilitate efficient integration, these positions are first smoothed out through Gaussian functions, expressed as
+\[\rho(r)  = \sum_i e^{\frac {-(r-r_i)^2}{2\sigma^2}}\]
+This conversion enables the representation of atomic positions as continuous Gaussian distributions.
+An outcome of this Gaussian smoothing is that all atomic elements tend to become indistinguishable. To address this, SOAP calculations are performed individually for each element within the context of the molecule or unit cell. The resultant SOAP values are then amalgamated to produce a comprehensive representation.
+The smoothed atomic positions, often referred to as atomic density, are subjected to decomposition using Laplace Spherical Harmonics. These harmonics are essentially spherical functions defined in real space. The process employs an orthogonal basis set encompassing functions denoted as $Y_{lm}(\theta,\phi)$ and $g_n(r)$.
+The integration of coefficients is a critical step in the SOAP process. Mathematically, this integration can be expressed as
+\[c_{nlm} = < \rho|g_n(r)Y_{lm}> = \int_v  g_n(r)Y_{lm}(\theta,\phi)\rho(r,\theta,\phi)dV \]
+The resulting coefficients from the integration form the basis for constructing a density matrix or power spectrum. This matrix encapsulates the parameters obtained through the SOAP process. To ensure the preservation of rotational invariance, the values are summed across all permissible m values.
+\[ P_{nn'l}=\sum_m c_{nlm}c_{n'lm}\]
+In summary, SOAP's multifaceted methodology is geared towards the meticulous representation of local molecular environments. Through a series of calculated steps involving Gaussian smearing, spherical harmonics, and coefficient integration, SOAP successfully extracts essential features while mitigating issues of rotational and permutation redundancies.\\
+There are many more descriptors in literature, many body tensor representation(MBTR) and local many body tensor representation(LMBTR) are popular choice that are used in machine learning application of identification of specific atomic environments\cite{Huo2022}. The Atom-centered Symmetry Functions (ACSFs) can be used
+to represent the local environment near an atom by using a fingerprint composed of the output of multiple two- and three-body
+functions that can be customized to detect specific structural
+features. ACSF encodes the configuration of atoms around a single central atom by using so called symmetry functions\cite{Behler2011}. Graph based descriptors has been lately popular due to their invariance of rotation, translation and permutation in a simple and intuitive form\cite{Kim2020}.  There are also simple, intuitive descriptor. like coulomb matrix\cite{Rupp2012},sine matrix or ewald sum matrix\cite{Faber2015} but they failed to compete in this complex task when compared with other descriptors.  
+
+\section{DeepIce} 
+DeepIce represents a groundbreaking advancement in the realm of computer simulations, harnessing the power of deep learning to discern between ice and water molecules. Crafted through collaborative efforts by Maxwell Fulford, Matteo Salvalaglio, and Carla Molteni, hailing from esteemed institutions - King's College London and University College London - this innovative approach demonstrates a transformative leap in molecular analysis.
+Functioning on the foundation of a two-step process, DeepIce ingeniously identifies the nearest neighbors of individual water molecules as its initial step. Thereafter, a sophisticated deep neural network steps in, orchestrating the classification of the molecule as either ice or water by meticulously evaluating the spatial arrangement of these proximate neighbors. A key underpinning is the meticulous training of this neural network using an extensive dataset that encompasses a wide array of established ice and water molecules.
+DeepIce's distinctiveness lies in its proven accuracy, far surpassing conventional methodologies like the Steinhardt order parameter for detecting ice and water molecules. Furthermore, its resilience against noise elevates its utility, rendering it adept at discerning ice and water molecules even in conditions of distorted or under-coordinated bonding environments.
+  \begin{figure}[H]
+  \centering
+  \includegraphics*[width=.8\linewidth]{background/deepice.jpeg}
+  \caption{Schematics of the DeepIce method}
+  \label{fig:IceIh}
+  \end{figure}
+\section{GCIceNet}
+GCIceNet is a graph convolutional network for accurate classification of water phases used to classify the phases of water molecules\cite{Kim2020}. GCNs are a type of deep learning model that can be used to learn the topological structure of graphs\cite{LeCun2015}. In this case, the graph represents the network of water molecules in a given system.
+The GCIceNet model consists of two main components: a graph convolutional layer and a fully connected layer. The graph convolutional layer uses the topological information of the graph to learn features of the water molecules. The fully connected layer then uses these features to classify the water molecules into different phases.
+The GCIceNet model was trained on a dataset of water molecules from molecular dynamics simulations. The model was able to achieve an accuracy of 98.7\% in classifying the phases of water molecules. This is a significant improvement over previous methods for classifying water phases.
+  \begin{figure}[H]
+  \centering
+  \includegraphics*[width=.8\linewidth]{background/gcicenet.png}
+  \caption{Schematics of GCIceNet model}
+  \label{fig:IceIh}
+  \end{figure}
+The GCIceNet model is a powerful tool for studying the phases of water. It can be used to classify water molecules in complex systems, such as pre melted ice surfaces. The model can also be used to study the changes in the phases of water as a function of temperature, pressure, and composition.\\
+Various other approaches has been taken to acomplish the task of differentiation of ice phases in this plethora of ML. From straighforward principal component analysis to multilayer perceptron based deep neural network, namely autoencoders has been used along with their specific architecture\cite{Monserrat2020}. 
+
+
