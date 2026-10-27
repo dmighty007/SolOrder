@@ -84,6 +84,58 @@ def classify_chunk(start, stop, offsets, indices, staggered, eclipsed, plus):
 
 
 @njit(cache=True, nogil=True)
+def minimum_image(d, cell, inverse, half_height):
+    """Shortest periodic image of d (cell rows are box vectors).
+
+    A wrapped vector shorter than half the smallest cell height is already the
+    minimum image; otherwise the 27 neighboring images are searched.
+    """
+    frac = d @ inverse
+    frac -= np.round(frac)
+    base = frac @ cell
+    best_sq = np.sum(base**2)
+    if best_sq < half_height**2:
+        return base
+    best = base.copy()
+    for a in range(-1, 2):
+        for b in range(-1, 2):
+            for c in range(-1, 2):
+                trial = base + a*cell[0] + b*cell[1] + c*cell[2]
+                sq = np.sum(trial**2)
+                if sq < best_sq:
+                    best, best_sq = trial, sq
+    return best
+
+
+@njit(cache=True, nogil=True)
+def neighborhood_chunk(start, stop, offsets, vectors, distances, cell, inverse, half_height, m):
+    out = np.full((stop-start, 3), np.nan)
+    for i in range(start, stop):
+        lo, hi = offsets[i], offsets[i+1]
+        n = hi-lo
+        if n < 2:
+            continue
+        v = vectors[lo:hi]
+        delta = np.empty((n, n, 3))
+        score = np.empty((n, n))
+        for j in range(n):
+            delta[j, j] = 0.
+            score[j, j] = np.inf
+            for k in range(j+1, n):
+                d = minimum_image(v[k]-v[j], cell, inverse, half_height)
+                delta[j, k] = d
+                delta[k, j] = -d
+                r = np.sqrt(np.sum(d**2))
+                score[j, k] = distances[lo+k]+r
+                score[k, j] = distances[lo+j]+r
+        ranks = np.empty((n, n), dtype=np.int64)
+        for j in range(n):
+            ranks[j] = np.argsort(score[j], kind="mergesort")
+        out[i-start] = neighborhood_reduce(v, delta, ranks, m)
+    return out
+
+
+@njit(cache=True, nogil=True)
 def neighborhood_reduce(vectors, delta, ranks, m):
     n = len(vectors)
     out = np.zeros(3)

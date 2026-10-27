@@ -86,19 +86,12 @@ def radial_values(function, radius):
     return values
 
 
-def _neighborhood_chunk(start, stop, offsets, vectors, distances, box, m):
-    out = np.full((stop-start, 3), np.nan)
-    for i in range(start, stop):
-        lo, hi = offsets[i:i+2]
-        v = vectors[lo:hi]
-        if len(v) < 2:
-            continue
-        delta = minimize_vectors((v[None, :, :]-v[:, None, :]).reshape(-1, 3), box).reshape(len(v), len(v), 3)
-        score = distances[lo:hi][None, :]+np.linalg.norm(delta, axis=2)
-        np.fill_diagonal(score, np.inf)
-        ranks = np.argsort(score, axis=1, kind="stable")
-        out[i-start] = kernels.neighborhood_reduce(v, delta, ranks, m)
-    return out
+def _cell_geometry(dimensions):
+    """Box rows, their inverse and half the smallest cell height (for minimum images)."""
+    cell = triclinic_vectors(dimensions, dtype=np.float64)
+    volume = abs(np.linalg.det(cell))
+    heights = [volume/np.linalg.norm(np.cross(cell[(i+1) % 3], cell[(i+2) % 3])) for i in range(3)]
+    return cell, np.linalg.inv(cell), .5*min(heights)
 
 
 class ExtendedOrder:
@@ -257,8 +250,8 @@ class ExtendedOrder:
         if isinstance(m, bool) or not isinstance(m, Integral) or m < 1:
             raise ValueError("m must be a positive integer")
         graph = self.neighbor_list(cutoff)
-        out = self._run(_neighborhood_chunk, self.n, graph.offsets, graph.vectors,
-                        graph.distances, self.dimensions, m)
+        out = self._run(kernels.neighborhood_chunk, self.n, graph.offsets, graph.vectors,
+                        graph.distances, *_cell_geometry(self.dimensions), m)
         return self.local_average(out, cutoff=cutoff) if averaged else out
 
     def quadrupole_parameter(self, dipole, *, negative_site_distance=0.):

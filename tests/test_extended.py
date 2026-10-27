@@ -237,3 +237,14 @@ def test_genice_zeta_reference_and_rings(phase):
         assert present == known[phase]
     with pytest.raises(ValueError):
         a.zeta(search=3.5)
+
+
+def test_minimum_image_matches_mdanalysis_in_skewed_cell():
+    from SolOrder.extended import _cell_geometry
+    box = np.array([20., 23., 26., 62., 75., 110.])
+    cell, inverse, half_height = _cell_geometry(box)
+    d = np.random.default_rng(3).uniform(-30, 30, (500, 3))
+    ours = np.array([kernels.minimum_image(v, cell, inverse, half_height) for v in d])
+    reference = np.linalg.norm(minimize_vectors(d, box), axis=1)  # MDAnalysis works in float32
+    np.testing.assert_allclose(np.linalg.norm(ours, axis=1), reference, rtol=1e-6)
+    assert np.all(np.linalg.norm(ours, axis=1) <= reference + 1e-5)
