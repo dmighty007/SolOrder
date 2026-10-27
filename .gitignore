@@ -26,3 +26,6 @@ manuscript/*.nlo
 manuscript/*.out
 manuscript/*.toc
 manuscript/*.log
+
+# Archival dataset built by scripts/build_release.py
+release/

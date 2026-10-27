@@ -37,7 +37,7 @@ review/outlook. Empty clathrate frameworks must be identified as empty framework
 | Current F1/F2/F7 | Separability, pooled redundancy and seed-label scores already generated | Thresholds are optimized on the evaluated data; frame bootstrap does not account for temporal blocks or independent replicas |
 | Nucleation validation | 366 sampled frames from 44 sources; numerical and serial/parallel checks documented | CHILL+ core labels are not independent truth; recovered ordering and approximate NPT boxes restrict some sources to descriptive use |
 | D2/D3 | Run E: six high-pressure ices and two compressed liquids at 220 K, two preparations each; run D: TIP4P/2005 at 220 and 200 K with a TIP4P/Ice protocol control, and oxygen-only mW at 220 K | One temperature and pressure per phase; mW at one state point; no three-site model |
-| D6 | Amorphous comparisons remain planned | No LDA/HDA results |
+| D6 | Amorphous pilot (`benchmarks/md_amorphous.py`, TIP4P/Ice, one preparation): Ih compressed at 80 K amorphizes at 1.3-1.55 GPa; recovered HDA 1.19 g/cm3 at 1 bar (CHILL+ ice 0%, CN 6.3, d5 3.25 A); liquid hyperquenched at 10 K/ns gives an LDA-like glass of 0.950 g/cm3 at 80 K (CN 4.1, d5 3.8 A, Q 0.88, CHILL+ ice 1.4%); heating HDA at 1 bar, 10 K/ns, relaxes gradually to 0.985 g/cm3 at 200 K: no distinct HDA→LDA transition under this 10 K/ns protocol | One preparation, fast rates; not yet benchmark data or in the paper |
 
 The seed MD script uses 20 ps of preparation, with seed oxygens restrained
 during preparation, followed by ten frames over the first 10 ps after release.
@@ -130,6 +130,13 @@ when implementing these helpers. Preserve pilot CSVs under a clearly versioned
 result directory before regenerating final figures.
 
 ## W2: resolve the small-seed result before recommending labelers
+
+**Status (27 October 2026).** Run F (`benchmarks/md_interface.py`,
+`interface_depth.py`, F10): replicated seeds of 50–1600 molecules (three
+preparations, Ih/Ic/Isd) and planar slabs. Recall against depth depends on
+curvature; the planar dead layer predicts labeled counts of seeds of 200–1600
+molecules via N(1 - delta/R)^3 within 9% (CHILL+) and 18% (PTM). False nuclei
+in held-out liquids with frozen rules are in `false_nuclei.py` (F9).
 
 The reported CHILL+ correct-polytype recall drops from nearly complete bulk
 labeling to about 11% for the 50-molecule Ih seed interior. Treat this as a
@@ -291,9 +298,8 @@ complex trained models need not be added to make this comparison useful.
 **Status (26 October 2026, cost only).** `benchmarks/cost.py`, figure F6:
 every registry entry from a fresh snapshot, 1,920–65,536 molecules, 1 and 8
 threads, i7-12700F. Linear scaling; whole registry 141 µs per molecule
-serial. Threads give no net speedup (0.94x for the whole registry);
-`extended._neighborhood_chunk` is a Python loop that holds the GIL and runs 4x
-slower with threads. Cold import/JIT, I/O, process backends and memory are
+serial (124 after the A1-A3 loop moved to a Numba kernel). Eight threads give
+1.6x for the whole registry at 65,536 molecules and are slower below ~8,000. Cold import/JIT, I/O, process backends and memory are
 not measured. The CV assessment has not started.
 
 For F6, begin at roughly 10^3 and 10^4 waters; attempt 10^5 only after measuring

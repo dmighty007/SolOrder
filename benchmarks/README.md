@@ -1,13 +1,12 @@
 # Order-parameter benchmark
 
-Pipeline for Chapter 5 of the review (`manuscript/new.tex`). The design is in
-[docs/benchmark_design.md](../docs/benchmark_design.md). This directory
-currently implements **milestones 1–2**: existing data plus generated ideal
-crystals, no new simulations.
-
-The follow-on [research workflow](../docs/research_workflow.md) sets the next
-priorities: statistical evaluation, seed-label audit, sensitivity, replicated
-thermal references, and qualified nucleation/CV comparisons.
+Data, analysis and figures behind the benchmark sections of the review
+(`manuscript/review.tex`). Every result in the review comes from the scripts
+in this directory; the commands under "Run" regenerate them, and
+`scripts/build_release.py` packages the coordinates, metadata, fixed
+evaluation splits and results as an archival dataset. The original design is
+in [docs/benchmark_design.md](../docs/benchmark_design.md) and the work plan
+with its status in [docs/research_workflow.md](../docs/research_workflow.md).
 
 Datasets:
 
@@ -66,11 +65,28 @@ MW_PLATFORM=CUDA MW_DIR=. python md_mw.py run all   # on the GPU host; copy D_mW
 ../.conda-env/bin/python sensitivity.py metrics   # about 1 min -> results/sensitivity.csv
 OMP_NUM_THREADS=1 ../.conda-env/bin/python cost.py --jobs 1   # about 20 min -> results/cost_jobs1.csv
 ../.conda-env/bin/python cost.py --jobs 8                     # -> results/cost_jobs8.csv
-../.conda-env/bin/python figures.py     # -> results/figures/*.png, *.pdf
+<gencompas>/bin/python md_interface.py prepare && <gencompas>/bin/python md_interface.py all   # run F, ~40 min
+../.conda-env/bin/python interface_depth.py compute && ../.conda-env/bin/python interface_depth.py metrics
+../.conda-env/bin/python nucleus_size.py       # planar calibration, forward and inverse -> results/nucleus_size*.csv
+../.conda-env/bin/python host_guest.py scan && ../.conda-env/bin/python host_guest.py compute && ../.conda-env/bin/python host_guest.py analyze   # OAMe-G2, data in cache/oame/
+../.conda-env/bin/python confined_water.py compute && ../.conda-env/bin/python confined_water.py analyze                                     # T4L L99A, data in cache/t4l/
+../.conda-env/bin/python host_guest.py export && ../.conda-env/bin/python confined_water.py export   # -> cache/applications/*_features.npz (archived; analyze falls back to them)
+<gencompas>/bin/python md_conditions.py E_V_p3_220_0.5GPa E_liquid_p3_220_0.5GPa   # fresh ice V test set
+../.conda-env/bin/python ice_v.py              # ice V case study -> results/ice_v_*.csv
+../.conda-env/bin/python false_nuclei.py       # frozen rules on liquids -> results/false_nuclei*.csv
+../.conda-env/bin/python liquid_diagnostics.py # relaxation and aging -> results/liquid_diagnostics.csv
+../.conda-env/bin/python redundancy_by_phase.py   # -> results/redundancy_by_phase.csv, redundancy_groups.csv
+<gencompas>/bin/python quench_check.py quench && ../.conda-env/bin/python quench_check.py compare
+<gencompas>/bin/python md_amorphous.py compress_p1 decompress_p1 heat_p1 quench_p1   # amorphous pilot
+../.conda-env/bin/python ../examples/benchmark_quickstart.py   # one published score, end to end
+../.conda-env/bin/python ../scripts/build_release.py           # archival dataset -> ../release/
+../.conda-env/bin/python figures.py     # -> results/figures/*.png, *.pdf (SOLORDER_RESULTS=<dir> reads another results folder)
 ```
 
-`compute.py` reads the seed-test data from
-`/home/dm/Dibyendu/Projects/ice_nucleation_pg/data/seedtest`. Input hashes,
+The seed-test data (runs A and B, the TIP4P/Ice topology and the MD helpers
+`system_ice.py` and `fire.py`) are read from `cache/seedtest/`, or from the
+folder named by the environment variable `SOLORDER_SEEDTEST`; in the archival
+release they are `coordinates/seedtest/`. Input hashes,
 the SolOrder version and the registry hash are written to
 `cache/manifest.json`.
 
@@ -103,6 +119,15 @@ the SolOrder version and the registry hash are written to
 | `results/sensitivity.csv` | C1–C3 at 220 K: oracle, held-out (C1 → C2/C3) and cross-convention (C1 at the default → C2/C3 at the variant) scores per column, task and setting of the first-shell cutoff, LSI shell, averaging radius and entropy radius; labeler scores per cutoff |
 | `results/cost_jobs1.csv`, `cost_jobs8.csv` | Wall time per registry entry and for the whole registry against system size, 1 and 8 threads |
 | `results/figures/F5`, `F6` | Neighbor-convention sensitivity; computational cost |
+| `results/interface_recall.csv`, `interface_prediction.csv`, `interface_prediction_errors.csv`, `interface_dead_layer.csv`, `interface_slab_prediction.csv` | Run F: recall by depth (per size, polytype, preparation), nucleus-size predictions of four models, dead layers |
+| `results/nucleus_size.csv`, `nucleus_size_summary.csv`, `nucleus_size_calibration.csv` | Planar calibration (f, delta per labeler and observable); forward and inverse size per seed, both surface conventions; pooled and per-system errors |
+| `results/oame_paths.csv`, `oame_regions.csv`, `oame_entry.csv`, `oame_drywet.csv`; `t4l_scores.csv`, `t4l_frozen.csv`, `t4l_cavity_track.csv`; `figures/F11` | Beyond ice: path labels, key-water separability, entry prediction (OAMe-G2); confined-water scores, frozen rule, cavity tracking (T4L L99A) |
+| `results/false_nuclei.csv`, `false_nuclei_frames.csv` | Frozen rules on held-out liquids: false-positive fraction, largest false cluster, persistence |
+| `results/ice_v_test.csv`, `ice_v_pairs.csv`, `ice_v_classes.csv` | Ice V: best single and pair on p2 and fresh p3; every pair's validation score; errors by structural class |
+| `results/liquid_diagnostics.csv` | Relaxation (MSD, F_s, 1/e time) and aging (energy and OP drift) of every liquid |
+| `results/redundancy_by_phase.csv`, `redundancy_groups.csv` | Spearman \|rho\| within single phases against the pooled analysis |
+| `results/quench_convergence.csv`, `quench_check.csv`, `quench_scores.csv` | FIRE energy and force against steps; parameter and score changes from 300 to 10,000 steps |
+| `results/figures/F9`, `F10` | False nuclei; interface depth and nucleus-size bias |
 
 ## Findings so far
 
@@ -236,6 +261,63 @@ accuracies, but see the held-out check, which shows they barely differ here.
   quenched frames recover all but 3.5%. Losses are largest for W4/W6 (median
   0.23–0.26), NDP (0.14), q6, F4, entropy (0.06–0.08), near zero for averaged
   and network parameters.
+- **Interface depth predicts nucleus-size bias** (run F, `md_interface.py`,
+  `interface_depth.py`, F10). Ih/Ic/Isd seeds of 50–1600 molecules and planar
+  slabs, three preparations, TIP4P/Ice 220 K. Recall against depth depends on
+  curvature: small seeds need more depth, curves reach the planar one from
+  ~400 molecules. A depth curve from 100/200-molecule seeds predicts other
+  sizes badly (50: x2 over; 400–1600: 11–20% under for CHILL/CHILL+, 26–32%
+  PTM); a curvature-aware support-fraction model: 2–11% (12–17% PTM). Planar
+  dead layer delta (integral of 1 - recall): CHILL+ 3.4–3.6 A, PTM 5.4–5.6 A;
+  N (1 - delta/R)^3 predicts seeds of 200–1600 molecules within 3–9% (CHILL+),
+  2–18% (PTM). CHILL+ labels 8/19/33/47/57/65% of seeds of 50–1600 molecules
+  with the right polytype (41–84% incl. interfacial, largest cluster); PTM
+  1–50%.
+- **Planar calibration of nucleus size** (`nucleus_size.py`, F10c-d). Size by
+  equimolar radius R = (3N/4 pi n)^(1/3); bulk recall f and dead layer delta
+  below the outermost molecular plane from the slabs only (CHILL+ 3.6 A, PTM
+  5.5 A, correct polytype). Forward N_lab = f N (1 - delta/R)^3; inverse
+  N = (4 pi n/3) [(3 N_lab/(4 pi f n))^(1/3) + delta]^3. All seeds held out;
+  sizes 200-1600, 36 systems per labeler. Inverse from the correct count:
+  CHILL+ 8% pooled, 7% median, 13% max per system; PTM 13/12/21%. From the
+  largest Ih/Ic cluster: CHILL+ 6/5/11%, PTM 13/11/20%. Forward per system:
+  CHILL+ max 15%, PTM 32%. Systematic +5-13% at 400-1600; fails below 200
+  (-9 to -22% mean, single seeds to -58%). Measuring delta from the slab's
+  equimolar surface (0.92 A further out) instead gives +27-35%: the
+  convention matters.
+- **Beyond ice: key and confined water** (supplementary material, `manuscript/supplement.tex`; `host_guest.py`, `confined_water.py`,
+  F11). Water-only parameters, unchanged, on PathGennie unbinding paths
+  (copied from gluon; not part of the release). OAMe-G2 (208 paths, TIP3P):
+  cavity mostly dry (185 dry, 8 wet, 6 intermediate, 9 no crossing); cavity
+  vs bulk held-out Voronoi density 0.99, smooth CN 0.91, q6 averaged 0.85;
+  vs water near the portal 0.91 / 0.85 / 0.81; bridging vs bulk 1.00 / 0.91;
+  Q averaged 0.94 pooled but 0.67 held-out; dry vs wet cavity waters
+  indistinguishable (<= 0.64); entry within 10 saved states predicted by
+  position (distance to portal AUC 0.996; position model 0.997; OPs add
+  nothing). T4L L99A (89 paths, SPC/E): the three wet-cavity waters vs
+  surface water 0.99 (Voronoi), 0.98 (smooth CN), 0.96 (q6 averaged, CN),
+  Q averaged and d5 < 0.5; other buried waters <= 0.80; frozen buried-vs-
+  surface rule flags 3.3–3.4 waters per frame near the wet cavity (3 present,
+  recall 0.99–1.00) and 1.0–1.2 near the dry one. Signal = missing water
+  neighbors; high q_l of isolated waters is a few-neighbor artifact.
+- **False nuclei** (`false_nuclei.py`, F9). Rules frozen on C1–C3 (Ih vs liquid)
+  on held-out liquids: q6 averaged, averaged entropy, CHILL+ and PTM give
+  largest false clusters ≤ 7 molecules at 220 K (PTM none). CHILL+ incl.
+  interfacial: 10% of the liquid, clusters up to 27 (~40% persist 5 ps).
+  Smooth CN (27%), d5 and q4 averaged (20%): clusters of 70–600. Crystalline
+  connections: 17–42 at 0.3–1 GPa, box-spanning at 3 GPa; averaged entropy
+  up to 58 at 3 GPa.
+- **Ice V** (`ice_v.py`). Best single (q4 averaged) 0.848 / 0.847 on p2 / fresh
+  p3; errors ~10% in every coordination class (5–9 O within 3.5 A) and with or
+  without 4-rings. Pair smooth CN + q4 averaged, selected on p1 only: 0.923 /
+  0.922; largest gains for the most crowded molecules.
+- **Credibility checks.** FIRE 300 steps vs 10,000: TIP4P energies within
+  0.03 kJ/mol/molecule, scores within 0.015 (mW liquid 0.22 kJ/mol, scores
+  within 0.026) (`quench_check.py`). Liquids: F_s(k = 2.25/A, 300 ps) =
+  0.40–0.47 for TIP4P/Ice 220 K (tau > 300 ps), 70–160 ps TIP4P/2005 220 K,
+  no OP drift > 5% of the Ih-liquid gap (`liquid_diagnostics.py`).
+  Within-phase redundancy: of 51 pooled-redundant pairs, 80% stay > 0.8 in Ih
+  or Ic, 27% in liquid, 0–4% in V/VI/VII (`redundancy_by_phase.py`).
 - **Pressure-matched liquids** (run E, liquid at 0.3, 0.5, 1.0 and 3.0 GPa).
   Each crystal against liquid at its own pressure, worse held-out of the two
   preparations, thermal: VI, VII, VIII 1.00 (averaged entropy), II 0.97
@@ -270,14 +352,14 @@ accuracies, but see the held-out check, which shows they barely differ here.
   cutoff coincidence. CHILL+ bulk Ih drops from 0.997 to 0.961 at 3.8 A
   (it needs exactly four neighbors inside the cutoff); CHILL is insensitive.
 - **Cost** (`cost.py`, F6; i7-12700F). Linear in system size for every
-  entry. Whole registry 141 µs per molecule on one thread (9.2 s for 65,536
-  molecules); CN 1.8, PTM 2.7, CHILL/CHILL+ 5, most others 6–13 (mainly the
-  5 A neighbor search), rings 30, angle histogram 21, Voronoi 20, A1–A3 19,
-  entropy 18 µs per molecule. Eight threads speed up rings (3.2x),
-  crystalline connections and Steinhardt (2.5x), but the whole registry is no
-  faster (0.94x) and the neighborhood parameters are 4x slower: their
-  per-atom Python loop (`extended._neighborhood_chunk`) holds the GIL.
-  Parallelize over frames instead.
+  entry. Whole registry 124 µs per molecule on one thread (8.2 s for 65,536
+  molecules); CN 1.7, PTM 2.7, CHILL/CHILL+ 5, A1–A3 5, most others 6–13
+  (mainly the 5 A neighbor search), rings 29, angle histogram 20, Voronoi 19,
+  entropy 17 µs per molecule. Eight threads: rings 3.1x, crystalline
+  connections and Steinhardt 2.4x, A1–A3 2.1x, whole registry 1.6x at 65,536
+  molecules and slower than serial below ~8,000. (A1–A3 were a GIL-bound
+  Python loop, 18.6 µs serial and 4x slower with threads, until
+  `_extended_kernels.neighborhood_chunk` replaced it.) Parallelize over frames.
 
 ## Caveats
 

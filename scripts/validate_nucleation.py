@@ -261,7 +261,7 @@ def iter_frames(source):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     root = Path(__file__).resolve().parents[1]
-    parser.add_argument("--data-root", type=Path, default=Path("/home/dm/Dibyendu/Projects/ice_nucleation_pg"))
+    parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=root/"docs/validation/nucleation")
     parser.add_argument("--frames", type=int, default=12)
     parser.add_argument("--shooting-frames", type=int, default=3)

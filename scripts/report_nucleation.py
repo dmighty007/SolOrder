@@ -264,7 +264,7 @@ coordination, CHILL+, F4 and bond-order comparisons use 3.5 A.
 python -m pip install -e ".[validation]"
 MPLCONFIGDIR=/tmp/solorder-mpl OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \\
   python scripts/validate_nucleation.py \\
-  --data-root /home/dm/Dibyendu/Projects/ice_nucleation_pg
+  --data-root <path to ice_nucleation_pg>
 MPLCONFIGDIR=/tmp/solorder-mpl python scripts/audit_nucleation.py
 MPLCONFIGDIR=/tmp/solorder-mpl python scripts/report_nucleation.py
 ```

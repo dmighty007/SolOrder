@@ -23,6 +23,7 @@ Outputs go to cache/replicas/ (not committed): <run>.npz, <run>.gro/.top,
 <run>.json (seeds, stacking, dipole, timings).
 """
 
+import os
 import argparse
 import json
 from pathlib import Path
@@ -33,7 +34,7 @@ import networkx as nx
 import numpy as np
 from scipy.spatial import cKDTree
 
-SEEDTEST = Path("/home/dm/Dibyendu/Projects/ice_nucleation_pg/data/seedtest")
+SEEDTEST = Path(os.environ.get("SOLORDER_SEEDTEST", Path(__file__).resolve().parent/"cache/seedtest"))
 OUT = Path(__file__).resolve().parent/"cache/replicas"
 sys.path.insert(0, str(SEEDTEST))
 

@@ -1,10 +1,12 @@
-"""Pilot figures F1 (separability), F2 (redundancy), F7 (seed-test labels) and
-S2 (oracle versus held-out thresholds).
+"""Every figure of the review (F1-F11, S2) from the result tables.
 
-Reads only benchmarks/results/*.csv, so figures can be restyled without
-recomputing anything. Writes PNG and PDF to benchmarks/results/figures/.
+Reads only result CSV files, so figures can be restyled without recomputing
+anything: benchmarks/results/ by default, or the folder named by
+SOLORDER_RESULTS (for example the release's results/). Writes PNG and PDF to
+<results>/figures/.
 """
 
+import os
 from pathlib import Path
 
 import matplotlib
@@ -16,7 +18,7 @@ import pandas as pd
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import squareform
 
-RESULTS = Path(__file__).resolve().parent/"results"
+RESULTS = Path(os.environ.get("SOLORDER_RESULTS", Path(__file__).resolve().parent/"results"))
 FIGURES = RESULTS/"figures"
 
 SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
@@ -453,6 +455,162 @@ def f6_cost():
     fig.tight_layout()
     save(fig, "F6_cost")
 
+RULE_NAMES = {"ptm": "PTM", "chill": "CHILL", "chill_plus": "CHILL+", "chill_plus_with_interface": "CHILL+ incl. interfacial",
+              "entropy_avg": "s̄", "q6_avg": "q̄6", "ring_f6": "6-ring fraction", "xconn6": "crystalline connections",
+              "q_tet_avg": "Q̄", "q3_avg": "q̄3", "d5": "d5", "q4_avg": "q̄4", "cn_smooth": "smooth CN"}
+REFERENCE_ORDER = ["TIP4P/Ice 220 K", "TIP4P/2005 220 K", "TIP4P/2005 200 K", "mW 220 K", "TIP4P/Ice 0.3 GPa",
+                   "TIP4P/Ice 0.5 GPa", "TIP4P/Ice 1.0 GPa", "TIP4P/Ice 3.0 GPa"]
+
+
+def f9_false_nuclei():
+    """Largest false ice cluster in liquids, frozen rules (false_nuclei.py)."""
+    table = pd.read_csv(RESULTS/"false_nuclei.csv")
+    table["ref"] = table.reference.str.replace(r" \(.*\)", "", regex=True)
+    matrix = table.groupby(["rule", "ref"]).largest_max.mean().unstack("ref")
+    matrix = matrix.loc[list(RULE_NAMES), REFERENCE_ORDER]
+    fig, ax = plt.subplots(figsize=(7.4, 5.2))
+    values = np.log10(matrix.to_numpy(float) + 1)
+    ramp = LinearSegmentedColormap.from_list("count", ["#f0efec", "#cde2fb", "#86b6ef", "#3987e5", "#1c5cab", "#0d366b"])
+    image = ax.imshow(values, cmap=ramp, vmin=0, vmax=3, aspect="auto")
+    for (i, j), v in np.ndenumerate(matrix.to_numpy(float)):
+        text = "–" if np.isnan(v) else f"{v:.0f}"
+        ax.text(j, i, text, ha="center", va="center", fontsize=7, color=SURFACE if np.log10(v+1) > 1.6 else INK)
+    ax.set_yticks(range(len(matrix)), [RULE_NAMES[r] for r in matrix.index])
+    ax.set_xticks(range(len(REFERENCE_ORDER)), REFERENCE_ORDER, rotation=40, ha="right")
+    ax.tick_params(length=0)
+    for side in ax.spines.values():
+        side.set_visible(False)
+    bar = fig.colorbar(image, ax=ax, shrink=.8, ticks=[0, 1, 2, 3])
+    bar.ax.set_yticklabels(["0", "9", "99", "999"])
+    bar.set_label("largest false ice cluster (molecules), worst frame")
+    ax.set_title("False nuclei in liquids, rules frozen on TIP4P/Ice at 220 K", loc="left")
+    save(fig, "F9_false_nuclei")
+
+SIZE_RAMP = {50: "#b7d3f6", 100: "#86b6ef", 200: "#5598e7", 400: "#2a78d6", 800: "#1c5cab", 1600: "#0d366b"}
+
+
+def f10_interface():
+    """Polytype recall against depth by seed size; forward and inverse size correction (run F)."""
+    recall = pd.read_csv(RESULTS/"interface_recall.csv")
+    sizes = pd.read_csv(RESULTS/"nucleus_size.csv")
+    sizes = sizes[sizes.convention == "molecular"]
+    calibration = pd.read_csv(RESULTS/"nucleus_size_calibration.csv")
+    fig, axes = plt.subplots(1, 4, figsize=(15, 3.9))
+    for ax, method, letter in zip(axes[:2], ("chill_plus", "ptm"), "ab"):
+        rows = recall[(recall.kind == "all") & (recall.method == method)]
+        for size, color in SIZE_RAMP.items():
+            part = rows[(rows.geometry == "seed") & (rows.subset == f"n{size}") & (rows.n >= 30)]
+            ax.plot(part.depth, part.correct, color=color, lw=2, label=f"seed, N = {size}")
+        slab = rows[(rows.geometry == "slab") & (rows.subset == "all") & (rows.n >= 30)]
+        ax.plot(slab.depth, slab.correct, color=INK, lw=2, ls="--", label="planar interface")
+        ax.set_xlim(0, 14)
+        ax.set_ylim(-.02, 1.02)
+        ax.set_xlabel("depth below the outermost molecules (Å)")
+        ax.set_ylabel("fraction with the correct polytype")
+        ax.set_title(f"({letter}) {METHOD_NAMES[method]}", loc="left")
+    axes[0].legend(frameon=False, fontsize=7, loc="lower right")
+    styles = {"chill_plus": ("#eb6834", "CHILL+"), "ptm": ("#1baf7a", "PTM")}
+    ax = axes[2]
+    B_ = 2.76
+    density = 3/((B_*np.sqrt(8/3))**2*np.sqrt(3)*B_)
+    radius = np.linspace(6, 26, 200)
+    for method, (color, label) in styles.items():
+        part = sizes[(sizes.observable == "correct") & (sizes.method == method)]
+        ax.scatter(part.R_equimolar, part.observed/part["size"], s=10, color=color, alpha=.45, edgecolor="none")
+        pooled = part.groupby("size").agg(R=("R_equimolar", "mean"), observed=("observed", "mean"))
+        ax.plot(pooled.R, pooled.observed/pooled.index, "o", ms=5, color=color, label=f"{label}, mean")
+        c = calibration[(calibration.observable == "correct") & (calibration.method == method)].iloc[0]
+        ax.plot(radius, c.bulk_recall*np.clip(1 - c.dead_layer/radius, 0, None)**3, color=color, lw=1.5, ls="--",
+                label=f"{label}: f(1 − δ/R)³, δ = {c.dead_layer:.1f} Å")
+    ax.set_xlabel("equimolar seed radius R (Å)")
+    ax.set_ylabel("correctly labeled / constructed molecules")
+    ax.set_ylim(0, 1)
+    ax.set_title("(c) Forward: undercounting", loc="left")
+    ax.legend(frameon=False, fontsize=6.5, loc="upper left")
+    ax = axes[3]
+    ax.plot([30, 2500], [30, 2500], color=GRID, lw=1, zorder=0)
+    for method, (color, label) in styles.items():
+        part = sizes[(sizes.observable == "cluster") & (sizes.method == method)]
+        jitter = 1 + .06*(list(styles).index(method) - .5)
+        ax.scatter(part["size"]*jitter, part.inverse, s=12, color=color, alpha=.6, edgecolor="none",
+                   label=f"{label}, from largest cluster")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xticks([50, 100, 200, 400, 800, 1600], ["50", "100", "200", "400", "800", "1600"])
+    ax.set_yticks([50, 100, 200, 400, 800, 1600], ["50", "100", "200", "400", "800", "1600"])
+    ax.minorticks_off()
+    ax.set_xlabel("constructed nucleus size N")
+    ax.set_ylabel("size recovered from the labeled count")
+    ax.set_title("(d) Inverse: recovered size", loc="left")
+    ax.legend(frameon=False, fontsize=7, loc="upper left")
+    for ax in axes:
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+    fig.tight_layout()
+    save(fig, "F10_interface")
+
+APP_COLUMNS = {"vor_density": "Voronoi density", "cn_smooth": "smooth CN", "cn": "CN", "n_hb": "N_HB",
+               "q6_avg": "q̄6", "s_avg": "s̄", "Q_avg": "Q̄", "Q": "Q", "d5": "d5", "lsi": "LSI", "zeta": "ζ",
+               "ring_f6": "6-ring fraction"}
+
+
+def f11_applications():
+    """Key and confined water beyond ice: OAMe-G2 unbinding paths and T4L L99A (host_guest.py, confined_water.py)."""
+    oame = pd.read_csv(RESULTS/"oame_regions.csv")
+    oame = oame[(oame.path_type == "all") & (oame.stage == "all")]
+    t4l = pd.read_csv(RESULTS/"t4l_scores.csv")
+    tasks = {"OAMe cavity\nvs bulk": oame[(oame.region == "cavity") & (oame.reference == "bulk")],
+             "OAMe cavity\nvs portal water": oame[(oame.region == "cavity") & (oame.reference == "near_portal")],
+             "OAMe bridging\nvs bulk": oame[(oame.region == "bridge") & (oame.reference == "bulk")],
+             "T4L cavity\nvs surface": t4l[(t4l.target == "cavity3") & (t4l.reference == "surface")],
+             "T4L buried\nvs surface": t4l[(t4l.target == "buried") & (t4l.reference == "surface")]}
+    matrix = np.array([[part.set_index("column").heldout.get(c, np.nan) for part in tasks.values()]
+                       for c in APP_COLUMNS])
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4.4), gridspec_kw=dict(width_ratios=(1.35, 1, 1)))
+    ax = axes[0]
+    image = ax.imshow(matrix, cmap=ACCURACY, vmin=.5, vmax=1., aspect="auto")
+    for (i, j), v in np.ndenumerate(matrix):
+        ax.text(j, i, f"{v:.2f}".removeprefix("0"), ha="center", va="center", fontsize=7,
+                color=SURFACE if v > .8 else INK)
+    ax.set_yticks(range(len(APP_COLUMNS)), APP_COLUMNS.values())
+    ax.set_xticks(range(len(tasks)), tasks.keys(), fontsize=7, rotation=35, ha="right")
+    ax.tick_params(length=0)
+    for side in ax.spines.values():
+        side.set_visible(False)
+    ax.set_title("(a) Held-out balanced accuracy", loc="left")
+    fig.colorbar(image, ax=ax, shrink=.7)
+    ax = axes[1]
+    entry = pd.read_csv(RESULTS/"oame_entry.csv").set_index("model")
+    labels = ["d_portal", "r", "vor_density", "Q_avg", "cn_smooth", "q6_avg", "position (logistic)", "position + all"]
+    names = ["distance to portal", "distance to axis", "Voronoi density", "Q̄", "smooth CN", "q̄6",
+             "position model", "position + all OPs"]
+    colors = [INK2, INK2, "#2a78d6", "#2a78d6", "#2a78d6", "#2a78d6", INK2, "#eb6834"]
+    ax.barh(range(len(labels)), [entry.auc[l] for l in labels], color=colors, height=.6)
+    ax.set_yticks(range(len(labels)), names)
+    ax.invert_yaxis()
+    ax.set_xlim(.5, 1.)
+    ax.set_xlabel("ROC AUC (single features: all paths;\nmodels: held out by path)")
+    ax.set_title("(b) OAMe: which waters enter next", loc="left")
+    ax = axes[2]
+    frozen = pd.read_csv(RESULTS/"t4l_frozen.csv")
+    show = ["vor_density", "cn_smooth", "n_hb", "q6_avg", "Q_avg", "d5"]
+    x = np.arange(len(show))
+    for k, (state, color) in enumerate((("dry", "#2a78d6"), ("wet", "#eb6834"))):
+        part = frozen[frozen.state == state].set_index("column")
+        ax.bar(x + (k - .5)*.38, [part.flagged_per_frame[c] for c in show], width=.36, color=color,
+               label=f"{state} ensemble")
+    ax.axhline(3, color=INK2, lw=1, ls="--")
+    ax.text(-.4, 3.08, "3 cavity waters (wet)", ha="left", va="bottom", fontsize=7, color=INK2)
+    ax.set_xticks(x, [APP_COLUMNS[c] for c in show], rotation=30, ha="right")
+    ax.set_ylabel("waters within 8 Å of the cavity\nflagged as buried, per frame")
+    ax.set_title("(c) T4L: frozen rule near the cavity", loc="left")
+    ax.legend(frameon=False, fontsize=7, loc="center right")
+    for ax in axes[1:]:
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+    fig.tight_layout()
+    save(fig, "F11_applications")
+
 
 if __name__ == "__main__":
     f1_ideal()
@@ -467,3 +625,6 @@ if __name__ == "__main__":
     f8_pressure()
     f5_sensitivity()
     f6_cost()
+    f9_false_nuclei()
+    f10_interface()
+    f11_applications()

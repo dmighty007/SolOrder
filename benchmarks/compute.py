@@ -26,6 +26,7 @@ Pilot datasets (docs/benchmark_design.md, milestone 1):
 Large outputs go to benchmarks/cache/ (not committed).
 """
 
+import os
 import argparse
 import hashlib
 import json
@@ -49,7 +50,8 @@ from registry import REGISTRY
 
 ROOT = Path(__file__).resolve().parents[1]
 GENICE = ROOT/"benchmarks/cache/genice"
-SEEDTEST = Path("/home/dm/Dibyendu/Projects/ice_nucleation_pg/data/seedtest")
+# Seed-test data (structures, trajectories, TIP4P/Ice topology and MD helpers); see README.
+SEEDTEST = Path(os.environ.get("SOLORDER_SEEDTEST", ROOT/"benchmarks/cache/seedtest"))
 CACHE = ROOT/"benchmarks/cache"
 JITTER = .02  # A
 SEEDS = (1, 2, 3, 4, 5)  # GenIce seeds; proton-ordered phases repeat

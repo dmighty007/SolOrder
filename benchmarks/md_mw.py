@@ -35,7 +35,7 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 INPUTS = Path(os.environ.get("MW_DIR", HERE/"cache/conditions/mw_inputs"))
-SEEDTEST = Path("/home/dm/Dibyendu/Projects/ice_nucleation_pg/data/seedtest")
+SEEDTEST = Path(os.environ.get("SOLORDER_SEEDTEST", Path(__file__).resolve().parent/"cache/seedtest"))
 sys.path[:0] = [str(HERE), str(SEEDTEST)]
 
 KCAL = 4.184
