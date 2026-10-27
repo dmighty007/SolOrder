@@ -74,9 +74,9 @@ Voronoi density (0.91), smooth CN (0.85) and $\bar q_6$ (0.81;
 \cref{fig:beyond}a). Bridging waters are as distinct from bulk (1.00, 0.91
 and, through $d_5$, 0.84). Cavity waters of dry and wet paths are not
 distinguishable from each other (at most 0.64), and tetrahedral, entropy and
-ring parameters are unstable: $\bar Q$ separates cavity from portal water at
-0.94 on all paths pooled but only 0.67 when the threshold moves between path
-halves. Which waters will enter the cavity within the next ten saved states
+ring parameters are unstable: $\bar Q$ separates cavity from portal water
+with an oracle score of 0.94 (threshold and test on all paths) but only 0.67
+when the threshold moves between path halves. Which waters will enter the cavity within the next ten saved states
 is decided by position: the distance to the portal alone gives a ROC area of
 0.996, a held-out position model 0.997, and adding any or all order
 parameters does not improve it (\cref{fig:beyond}b).
@@ -85,14 +85,17 @@ parameters does not improve it (\cref{fig:beyond}b).
 ensemble three waters sit beside benzene in the hydrophobic cavity from the
 start. Thresholds fitted on two replicas and tested on the other two separate
 these three waters from protein-surface water through Voronoi density
-(0.99), smooth CN (0.98), $\bar q_6$ and CN (0.96) and $\bar s$ (0.89), but not
+(0.99), smooth CN (0.97), $\bar q_6$ and CN (0.96) and $\bar s$ (0.89), but not
 through $\bar Q$ or $d_5$ (below 0.5). Other buried waters (at least 60
 protein heavy atoms within 8~\AA) are harder (at most 0.80), because many
-belong to small connected internal clusters. A rule frozen on buried versus
-surface water flags 3.3--3.4 waters per frame within 8~\AA{} of the cavity in
-the wet ensemble, against three present, recovering them in 99--100\% of
-frames, and 1.0--1.2 in the dry ensemble, mostly other buried waters near the
-pocket (\cref{fig:beyond}c). The three cavity waters remain buried and
+belong to small connected internal clusters. A rule fitted on buried versus
+surface water of one replica pair and applied to the other pair (mean of both
+directions) flags 3.4 waters per frame within 8~\AA{} of the cavity in the wet
+ensemble, against three present, recovering 99.9\% of their appearances,
+and 1.2 in the dry ensemble, mostly other buried waters near the pocket
+(\cref{fig:beyond}c). Because the three cavity waters are the same molecules
+in both wet replicas and each replica pair holds one wet replica, these
+held-out tests rest on one wet trajectory set on each side. The three cavity waters remain buried and
 isolated (smooth CN about 1.7) after benzene has left.
 
 \paragraph{Interpretation and limits.} In both systems the parameters detect
@@ -120,8 +123,9 @@ against bulk, and T4L L99A cavity and buried waters against protein-surface
 water. (b) OAMe--G2: ROC area for identifying the waters near the portal that
 enter the cavity within the next ten saved states; single features evaluated
 on all paths, logistic models held out by path. (c) T4L L99A: waters within
-8~\AA{} of the cavity flagged as buried per frame by rules frozen on buried
-versus surface water, in the dry and wet ensembles; dashed, the three cavity
+8~\AA{} of the cavity flagged as buried per frame by rules fitted on buried
+versus surface water of the other replica pair (mean of both directions), in
+the dry and wet ensembles; dashed, the three cavity
 waters of the wet ensemble.}
 \label{fig:beyond}
 \end{figure}

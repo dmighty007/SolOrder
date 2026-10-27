@@ -39,12 +39,15 @@ from different codes, cutoffs and water models. We review them in one
 taxonomy and present a reproducible benchmark that asks when they give
 reliable, transferable labels. Its central result concerns nucleus size.
 Near an ice/liquid interface every labeler misses a surface layer, and the
-thickness of that layer, measured once on a planar interface (3.6~\AA{} for
-CHILL+, 5.5~\AA{} for PTM), predicts how strongly finite nuclei are
-undercounted: in replicated TIP4P/Ice seeds of 200--1600 molecules at 220~K,
-inverting the calibration recovers the actual size from the labeled count or
-the largest labeled cluster alone, within 8\% pooled and 13\% for any single
-seed with CHILL+ (13\% and 21\% with PTM). Without it, a labeler that is
+number of molecules it misses per unit area, measured once on a planar
+interface (a dead layer of 3.4~\AA{} for CHILL+ and 5.0~\AA{} for PTM),
+predicts how strongly finite nuclei are undercounted. In replicated TIP4P/Ice
+seeds of 200--1600 molecules at 220~K, inverting the calibration recovers the
+constructed size from the labeled count within 5\% pooled and 10\% for any
+single seed with CHILL+ (10\% and 25\% with PTM), and from the largest labeled
+cluster within 10\% from 400 molecules on. Fresh seeds of 300 and 600
+molecules, prepared only after the calibration had been frozen, are recovered
+within 10\% by both labelers. Without it, a labeler that is
 99.7\% accurate in bulk ice still counts only half of a 400-molecule nucleus,
 and two labelers can disagree on the size of the same nucleus by a factor of
 two. The broader benchmark (22 parameter families, 39 outputs and three
@@ -133,12 +136,15 @@ an amount that depends on the labeler and on the nucleus size. We show that
 the thickness of that layer, measured once on a planar ice/liquid interface,
 predicts the undercounting of finite seeds, and that inverting the relation
 recovers the size of a nucleus from its labeled count alone, validated on
-independently prepared seeds that played no part in the calibration
-(\cref{sec:interface}). Nucleus sizes from seeding and enhanced-sampling
-studies are known to depend on the order parameter that defines
-them~\cite{Espinosa2016,SanchezBurgos2022,Gispen2024}; the calibration
-explains a spatial contribution to that dependence and offers a correction
-for it.
+independently prepared seeds that played no part in the calibration and
+confirmed on seeds prepared after it had been frozen (\cref{sec:interface}).
+Nucleus sizes from seeding and enhanced-sampling studies are known to depend
+on the order parameter that defines
+them~\cite{Espinosa2016,SanchezBurgos2022,Gispen2024}, and for hard spheres
+this dependence is captured by a constant shift of the nucleus radius fitted
+to the nucleation barrier~\cite{Filion2010}. The planar calibration measures
+such a shift independently, before any nucleus is seen, and so explains a
+spatial contribution to the dependence and offers a correction for it.
 
 This review has four parts. \Cref{sec:phases} summarizes the ice landscape
 and the structural features a local parameter can and cannot see.
@@ -412,7 +418,9 @@ For water, Reinhardt and co-workers designed Steinhardt-based parameters able
 to drive ice growth~\cite{Reinhardt2012}, Haji-Akbari and Debenedetti
 labeled molecules with $q_6>0.5$ within 3.2~\AA{} in their direct
 nucleation-rate calculation~\cite{HajiAkbari2015}, and seeding studies tune a
-$\bar q_6$ threshold by a mislabeling criterion~\cite{Espinosa2016}.
+$\bar q_6$ threshold by a mislabeling criterion, which balances the fractions
+of mislabeled molecules in the bulk parent and nucleating
+phases~\cite{Espinosa2016,Lamas2021}.
 
 The CHILL algorithm~\cite{Moore2010} uses the correlation
 $c(i,j)=\mathbf q_3(i)\cdot\mathbf q_3(j)/(|\mathbf q_3(i)||\mathbf q_3(j)|)$
@@ -701,6 +709,7 @@ C1--C5 & Ih, Ic, Isd, liquid & TIP4P/Ice & 220~K (Ih, Ic also 250~K), 1~bar & 5 
 Run D & Ih, Ic, Isd, liquid & TIP4P/2005; TIP4P/Ice NPT control; mW & 220~K (TIP4P/2005 also 200~K$^c$), 1~bar & 3 & 60, 5~ps & model and protocol transfer \\
 Run E & II, III, V, VI, VII, VIII; liquid at each pressure & TIP4P/Ice & 220~K, 0.3--3.0~GPa & 2$^d$ & 60, 5~ps & high-pressure extension \\
 Run F & Ih, Ic, Isd seeds of 50--1600 molecules in liquid; planar slabs & TIP4P/Ice & 220~K, 1~bar & 3 & 10, 2~ps & interface depth, nucleus-size bias \\
+Run G & Ih, Ic, Isd seeds of 300, 600 molecules; prism and basal slabs & TIP4P/Ice & 220~K, 1~bar & 1$^e$ & 10, 2~ps$^f$ & confirmation, facets, time \\
 Sensitivity & Ih, Ic, liquid (C1--C3) & TIP4P/Ice & 220~K, 1~bar & 3 & 12, 25~ps & neighbor conventions \\
 Nucleation & 44 trajectories & TIP4P/Ice, mW & various & -- & 366 total & qualitative application \\
 \bottomrule
@@ -709,7 +718,8 @@ Nucleation & 44 trajectories & TIP4P/Ice, mW & various & -- & 366 total & qualit
 \raggedright\footnotesize $^a$ For proton-disordered phases; ordered phases
 repeat. $^b$ Same starting structures as run A. $^c$ Ih, Ic and liquid.
 $^d$ Three for ice V and the 0.5~GPa liquid; the third is used only as the final
-test in the ice V case study.
+test in the ice V case study. $^e$ A fourth preparation, built after the
+nucleus-size calibration had been frozen. $^f$ Long basal slabs: 34 frames, 2--500~ps.
 \end{table}
 
 \subsection{Separability metric}
@@ -1079,11 +1089,13 @@ Polytype recall at a given depth is not a property of the labeler alone: it
 depends on the curvature of the surface (\cref{fig:interface}a, b). At the
 planar interface CHILL+ assigns the correct polytype to 26\% of molecules
 2.5--3~\AA{} below the outermost oxygen plane, 87\% at 3.5--4~\AA{} and all
-molecules from 6~\AA{} on, and PTM reaches 95\% at 6--6.5~\AA. In seeds the
-same curves shift to larger depths the smaller the seed, and approach the
-planar curve from about 400 molecules on: a molecule at a given depth below a
-strongly curved surface has less crystal within the labeler's support. As a
-consequence, a recall-depth curve measured on seeds of 100 and 200 molecules
+molecules from 6~\AA{} on, and PTM reaches 95\% at 6--6.5~\AA; a basal slab
+has molecules only at the depths of its layers (0, 2.76, 3.68, 6.44~\AA,
+\dots). In seeds the curves shift to larger depths the smaller the seed: a
+molecule at a given depth below a strongly curved surface has less crystal
+within the labeler's support. From about 400 molecules on they are close to
+the planar values, and summed over the seed's molecules slightly above them
+(see below). As a consequence, a recall-depth curve measured on seeds of 100 and 200 molecules
 does not predict other sizes. Summed over the constructed molecules of seeds
 it has not seen, it overestimates the correctly labeled count of 50-molecule
 seeds about twofold and underestimates seeds of 400--1600 molecules by
@@ -1094,15 +1106,22 @@ small seeds), reduces these errors to 2--11\% and 12--17\%.
 
 \paragraph{A planar calibration of finite-nucleus undercounting.} The
 simplest description is also the most useful. We define the size of a
-nucleus by its equimolar radius, $R=(3N/4\pi n)^{1/3}$ with $n$ the number
-density of the constructed lattice; on these compact, cut seeds $R$ agrees
-with the radius of the outermost molecule within 0.4~\AA. From the planar
+nucleus by its equimolar radius, $R=(3N/4\pi n)^{1/3}$, with $n$ the number
+density of the constructed lattice ($0.0309$~\AA$^{-3}$; for an unknown
+nucleus, the density of the model's ice at the state point). From the planar
 slabs alone we measure, for each labeler and observable, the bulk recall $f$
-(of molecules deeper than 8~\AA) and the dead layer
-$\delta=\int_0^\infty[1-p(z)/f]\,dz$, with $p(z)$ the recall at depth $z$ below
-the outermost molecular plane: $\delta=3.6$~\AA{} for CHILL+ and 5.5~\AA{} for
-PTM for the correctly assigned polytype, nearly independent of polytype
-(3.4--3.6 and 5.4--5.6~\AA). A nucleus then has about
+(of molecules deeper than 8~\AA) and the number of crystal molecules the
+labeler misses per unit area of one face, $\Gamma=\sum_i(1-p_i/f)/A$, with
+$p_i$ the labeled outcome of crystal molecule $i$. The dead layer is this
+count expressed as a thickness,
+\begin{equation}
+  \delta=\Gamma/n ,
+  \label{eq:deadlayer}
+\end{equation}
+which needs neither depth bins nor a reference plane. For the correctly
+assigned polytype $\delta=3.4$~\AA{} for CHILL+ and 5.0~\AA{} for PTM
+(3.2--3.5 and 4.9--5.1~\AA{} for the three polytypes, 3.2--3.7 and
+4.7--5.3~\AA{} for single slabs). A nucleus then has about
 \begin{equation}
   N_\mathrm{lab} \approx f\,N\left(1-\delta/R\right)^3
   \label{eq:forward}
@@ -1113,76 +1132,118 @@ follows from the labeled count alone:
   N \approx \frac{4\pi n}{3}\left[\left(\frac{3N_\mathrm{lab}}{4\pi f n}\right)^{1/3}+\delta\right]^3 .
   \label{eq:inverse}
 \end{equation}
-The choice of surface matters at the 1~\AA{} level, which changes $N$ by
-about 20\% at $R=15$~\AA: measured instead from the equimolar surface of a
-flat basal facet, which lies 0.9~\AA{} outside its outermost molecules,
-$\delta$ grows accordingly and \cref{eq:inverse} overestimates the seeds by
-27--35\% (CHILL+, PTM). The convention above, with $\delta$ from the planar molecular
-surface and $R$ equimolar, is the one validated here.
+A depth integral, $\delta=\int[1-p(z)/f]\,dz$ below the outermost oxygen
+plane, looks equivalent but is not well defined for a layered crystal: it
+depends on how the empty depth bins between layers are filled. For CHILL+ it
+gives 3.6, 3.0 or 2.4~\AA{} with forward, linear or backward filling (PTM
+5.5, 4.5 and 3.5~\AA), and the pooled inverse error for CHILL+ becomes 8, 14
+or 27\% instead of the 5\% obtained below; referred to the slab's equimolar
+surface, 0.9~\AA{} further out, it overestimates the seeds by 27--35\%. These alternatives are reported with the
+results; none is used.
 
 No seed enters the calibration, so every seed tests it
 (\cref{fig:interface}c, d). For seeds of 200--1600 molecules (36 systems per
-labeler: four sizes, three polytypes, three preparations),
-\cref{eq:forward} predicts the correctly assigned count of CHILL+ with a
-largest error of the mean over preparations and polytypes of 10\% and an
-error for individual systems of median 8\% and at most 15\%; for PTM the
-corresponding figures are 18\%, 15\% and 32\%. The inverse
-\cref{eq:inverse} recovers the constructed size from the count with errors
-of 8\% (pooled), 7\% (median) and 13\% (largest individual) for CHILL+ and
-13, 12 and 21\% for PTM. Applied to the observable nucleation studies
-actually report, the largest connected cluster of molecules labeled Ih or Ic
-(which can include liquid molecules), with $f$ and $\delta$ calibrated for that
-observable on the slabs, it does as well: 6\%, 5\% and 11\% for CHILL+, 13\%,
-11\% and 20\% for PTM. The errors are systematic rather than random: for
-seeds of 400--1600 molecules the inverse overestimates by 5--13\%, as if a
-convex surface lost a slightly thinner layer than a flat one. The correction
-fails below about 200 molecules, where $R$ is only about two dead layers
-(underestimates of 9--22\% on average and up to 58\% for single seeds), and
-it is worse for CHILL+ clusters including the interfacial class (22\%
-pooled), which absorb liquid molecules next to the crystal.
+labeler: four sizes, three polytypes, three preparations), \cref{eq:inverse}
+recovers the constructed size from the correctly assigned count with errors
+of 5\% (largest error of the mean over preparations and polytypes), 5\%
+(median over individual systems) and 10\% (largest individual error) for
+CHILL+, and 10, 5 and 25\% for PTM; \cref{eq:forward} predicts the counts
+themselves with 5, 6 and 16\% (CHILL+). Applied to the observable nucleation
+studies actually report, the largest connected cluster of molecules labeled
+Ih or Ic (which can include liquid molecules), with $f$ and $\delta$
+calibrated for that observable on the slabs, the errors are 13, 2 and 19\%
+for CHILL+ and 13, 4 and 28\% for PTM. The pooled and largest errors come from
+the 200-molecule seeds, whose clusters are underestimated by 13\% on
+average; from 400 molecules on, the mean error is at most 5\% and no
+individual error exceeds 10\% for either observable and labeler. The errors
+are systematic rather than random: correctly assigned counts of seeds of
+400--1600 molecules are overestimated by 2--5\%, and the mean signed error
+differs between preparations by less than one percentage point. The
+correction fails below 200 molecules, where $R$ is less than three dead
+layers (underestimates of 9--39\% on average). With the interfacial class,
+CHILL+ clusters give 6, 5 and 13\%. CHILL is not suited to this calibration:
+its bulk recall depends on the polytype (0.70 for Ih, 0.86 for stacking-disordered ice, 1.00 for Ic), and one
+calibration for all polytypes leaves individual errors of up to 26\%.
+
+\paragraph{Confirmation on seeds prepared afterwards (run G).} The dead-layer
+definition and the validated range were settled on run F after its seeds had
+been examined: the alternatives above were scored on the same seeds. To test
+the calibration on data that played no part in any choice, we froze its code
+and values, recorded them with a pass criterion (errors within the range
+found for run F) and only then built and simulated a fourth preparation:
+Ih, Ic and stacking-disordered seeds of 300 and 600 molecules, sizes not used
+before, in a newly prepared liquid. All 24 predictions met the criterion.
+From the correctly assigned count, \cref{eq:inverse} recovers the
+constructed size within 5\% for CHILL+ and 7\% for PTM. From the largest
+cluster it recovers it within 9\% and 10\%, with mean errors of $-6\%$ and $-4\%$.
+
+\paragraph{Facets and time.} Seeds expose many facets, the calibration slabs
+only basal ones. Slabs with primary prism faces, built and simulated in run G
+with the same protocol, have a thinner dead layer, 3.05~\AA{} for CHILL+ and
+4.5~\AA{} for PTM, about 10\% below the basal values, which a fourth basal
+preparation reproduces (3.37 and 5.04~\AA). Basal slabs followed for 500~ps
+after release keep the CHILL+ dead layer constant (slope $0.002\pm0.005$~\AA{}
+per 100~ps); the PTM dead layer grows by 0.13~\AA{} (3\%) within the first
+100~ps, which changes $N$ by about 3\% at 400 molecules. The intact fraction
+falls from 0.93 to 0.92 over the same time.
 
 \paragraph{What the calibration assumes.} \Cref{eq:forward,eq:inverse} are
 an approximation, not a geometric identity. Write the planar recall as
-$p(z)=f[1-h(z)]$, so that $\delta=\int_0^\infty h\,dz$. If recall in a sphere
-of radius $R$ and uniform density $n$ depended on depth alone, the labeled
-count would be
+$p(z)=f[1-h(z)]$. If recall in a sphere of radius $R$ and uniform density $n$
+depended on depth alone, the labeled count would be
 \begin{equation}
   N_\mathrm{lab}=4\pi n f\int_0^R[1-h(z)](R-z)^2\,dz
   = fN\left(1-\frac{3\delta}{R}+\frac{6\mu_1}{R^2}-\frac{3\mu_2}{R^3}\right),
   \qquad \mu_k=\int_0^\infty z^k h(z)\,dz ,
   \label{eq:moments}
 \end{equation}
-with $h$ negligible beyond the sphere's centre. The planar dead layer
-therefore fixes the leading, $1/R$, surface deficit exactly. \Cref{eq:forward}
-is what \cref{eq:moments} becomes for a sharp missing shell, $h=1$ for
-$z<\delta$ and 0 beyond ($\mu_1=\delta^2/2$, $\mu_2=\delta^3/3$), and it
-approximates the higher orders. For the measured, graded profiles $\mu_1$ is
-about 10\% larger than $\delta^2/2$ (7.2 against 6.5~\AA$^2$ for CHILL+, 16.1
-against 15.1~\AA$^2$ for PTM), so the full planar-profile expression predicts
-labeled counts 6, 3 and 1\% (CHILL+) and 19, 8 and 2\% (PTM) larger than
-\cref{eq:forward} for seeds of 200, 400 and 1600 molecules; truncating after
-the $1/R$ term instead would be far worse (26\% of a 400-molecule seed
-labeled by CHILL+, against 43\% from \cref{eq:forward} and 47\% observed). Neither expression contains the second
-effect seen in \cref{fig:interface}a, b: at a given depth recall itself
-falls as curvature increases. The two effects are of opposite sign, and the
-validation above measures their net result; the correction is therefore
-empirical, validated on these seeds, and not exact in any limit except
-$R\gg\delta$.
+with $\delta=\mu_0$ and $h$ negligible beyond the sphere's centre. The leading,
+$1/R$, term is the number of missed molecules per unit area, which
+\cref{eq:deadlayer} measures without reference to any plane; the higher
+moments depend on where depth is measured from and on the shape of the
+profile. \Cref{eq:forward} is what \cref{eq:moments} becomes for a sharp
+missing shell, $h=1$ for $z<\delta$ and 0 beyond ($\mu_1=\delta^2/2$,
+$\mu_2=\delta^3/3$), and it approximates these higher orders. Two effects
+beyond the leading order are seen in the data, and they act in opposite
+directions with size. Summing the basal recall at each seed molecule's depth
+underpredicts the labeled counts of seeds of 400--1600 molecules by 5--8\%
+(CHILL+) and 8--12\% (PTM): those seeds are labeled better than a basal
+surface at the same depth, consistent with the thinner dead layer of the
+prism faces they also expose. Below about 200 molecules the curvature effect
+dominates, and the same sum overpredicts 50-molecule seeds 2.7-fold (CHILL+).
+The correction is therefore empirical. It is exact only to leading order in
+$\delta/R$, it rests on a basal calibration, and it has been validated only
+in the range given below.
+
+The size it recovers is the constructed size. After release 6--14\% of the
+constructed molecules of seeds of 200--1600 molecules (8--12\% in run G) are
+no longer intact: they are more than 1~\AA{} from their site or have lost a
+lattice bond. The slab dead layer includes the corresponding disorder of the
+interface. Against the intact count, \cref{eq:inverse} overestimates by 12\%
+(CHILL+, correctly assigned count) and 4\% (CHILL+, largest cluster) on
+average, and by 10 and 8\% for PTM. Neither count is a thermodynamic nucleus
+size.
 
 The uncorrected bias is large. CHILL+, which labels 99.7\% of bulk Ih
 correctly, assigns the right polytype to only 8, 19, 33, 47, 57 and 65\% of the
 molecules of seeds of 50, 100, 200, 400, 800 and 1600 molecules, and PTM to
-1--50\%. Because $\delta$ differs between these labelers by about 2~\AA, the
+1--50\%. Because $\delta$ differs between these labelers by 1.6~\AA, the
 sizes they report for the same nucleus of a few hundred molecules differ by
 a factor of up to two. This is a spatial contribution to the dependence of
 nucleus sizes on the order parameter seen in seeding
-calculations~\cite{Espinosa2016,SanchezBurgos2022,Gispen2024}. The correction
-has been validated for correctly assigned and largest-cluster counts of
-constructed, approximately spherical Ih, Ic and stacking-disordered seeds of
-200--1600 molecules in TIP4P/Ice at 220~K, observed within 20~ps of release;
-it does not by itself give critical nucleus sizes, which also depend on how
-the nucleus is defined thermodynamically, and its transfer to faceted or
-growing nuclei, other temperatures and other models remains to be tested.
+calculations~\cite{Espinosa2016,SanchezBurgos2022,Gispen2024}. Filion and
+co-workers absorbed the same dependence into a constant shift of the radius,
+fitted to umbrella-sampling barriers of hard spheres~\cite{Filion2010}, and
+variational umbrella seeding makes barriers nearly independent of the
+order parameter~\cite{Gispen2024}. The planar dead layer instead measures the
+shift directly, for each labeler and observable, without a barrier. The
+correction has been validated for correctly assigned and largest-cluster
+counts of constructed, approximately spherical Ih, Ic and stacking-disordered
+seeds of 200--1600 molecules in TIP4P/Ice at 220~K, observed 2--20~ps after
+release, with a basal calibration. It does not by itself give critical
+nucleus sizes, which also depend on how the nucleus is defined
+thermodynamically, and its transfer to faceted or growing nuclei, other
+temperatures and other models remains to be tested.
 
 \begin{figure}[H]
 \centering
@@ -1191,15 +1252,18 @@ growing nuclei, other temperatures and other models remains to be tested.
 TIP4P/Ice, 220~K, Ih, Ic and stacking-disordered seeds, three preparations).
 (a, b) Fraction of constructed crystal molecules labeled with the correct
 polytype against depth below the outermost constructed molecules, pooled over
-polytypes, for seeds of 50--1600 molecules and for the planar interface
-(dashed); bins with fewer than 30 molecules omitted. (c) Correctly labeled
-fraction against equimolar seed radius: small points, individual systems
-(one polytype, one preparation, mean over 10 frames); large points, mean per
-size; dashed, \cref{eq:forward} with $f$ and $\delta$ from the planar interface
-only. (d) Size recovered by \cref{eq:inverse} from the largest connected
-Ih/Ic cluster of each individual system against its constructed size;
-diagonal: perfect recovery. Errors for seeds of 200--1600 molecules, pooled
-and per system: CHILL+ 6\% and at most 11\%, PTM 13\% and at most 20\%.}
+polytypes, for seeds of 50--1600 molecules and for the planar basal
+interface (circles, at the depths of its molecular layers); bins with fewer
+than 30 molecules omitted. (c) Correctly labeled fraction against equimolar
+seed radius: small points, individual systems (one polytype, one preparation,
+mean over 10 frames); large points, mean per size; dashed, \cref{eq:forward}
+with $f$ and $\delta=\Gamma/n$ from the planar interface only. (d) Size
+recovered by \cref{eq:inverse} from the largest connected Ih/Ic cluster of
+each individual system against its constructed size; diamonds, the
+confirmation seeds of run G, prepared after the calibration had been frozen;
+diagonal, perfect recovery. Errors from the largest cluster per system: at
+most 19\% (CHILL+) and 28\% (PTM) for seeds of 200 molecules, at most 10\%
+from 400 molecules on.}
 \label{fig:interface}
 \end{figure}
 
@@ -1213,23 +1277,37 @@ fitting and measured, in every frame, the fraction of molecules labeled ice
 and the largest connected cluster of them (O--O edges below 3.5~\AA;
 \cref{fig:false}).
 
-In the held-out TIP4P/Ice liquid at 220~K (C4, C5), the recommended rules
-almost never form a false nucleus: $\bar q_6$ labels 0.7\% of molecules as ice
-and its largest false cluster has at most 6 molecules, $\bar s$ 0.1\% and 7,
-CHILL+ 0.6\% and 4, and PTM none at all. Several rules with respectable
-per-molecule scores do much worse. Counting CHILL+'s interfacial class as ice
-labels 10\% of the liquid and produces false clusters of 15 molecules on
-average and up to 27, of which about 40\% are again part of a cluster 5~ps
-later. Smooth CN (27\% false positives) forms clusters that span the box,
-and $d_5$ and $\bar q_4$ (20\%) form clusters of 70--80 molecules, comparable
-to critical nuclei at moderate supercooling. With the TIP4P/Ice thresholds
-unchanged, TIP4P/2005 liquids at 220 and 200~K and the mW liquid behave like
-the TIP4P/Ice liquid for the recommended rules (largest false clusters at
-most 12 molecules). Frozen thresholds fail in dense liquids instead. Crystalline
-connections, whose count of correlated $\mathbf q_6$ bonds rises with density,
-report false clusters of 17--42 molecules at 0.3--1.0~GPa and a cluster
-spanning the box in the nearly arrested liquid at 3.0~GPa, where $\bar s$
-also finds false clusters of up to 58 molecules.
+In the held-out TIP4P/Ice liquid at 220~K (C4, C5, 120 frames of 4096
+molecules), the recommended rules almost never form a false nucleus. $\bar q_6$
+labels 0.7\% of molecules as ice and its largest false cluster in any frame
+has 8 molecules; $\bar s$ labels 0.1\% (largest cluster 7), CHILL+ 0.6\% (4),
+and PTM none at all. Several rules with respectable per-molecule scores do
+much worse. Counting CHILL+'s interfacial class as ice labels 10\% of the
+liquid and produces false clusters of 14--17 molecules on average and up to
+30, of which 30--45\% are again part of a cluster 5~ps later. Smooth CN (27\%
+false positives) forms clusters of up to 700 molecules, which connect to their
+own periodic image in 5--12\% of frames, and $d_5$ and $\bar q_4$ (20\%) form
+clusters of up to 75 and 98 molecules, comparable to critical nuclei at
+moderate supercooling. These rules fail because their best balanced
+threshold accepts a fifth of the liquid. With a threshold that labels 1\% of
+the fitting liquid as ice instead, their largest false clusters shrink to at
+most 6 molecules, but they then label only 0.5\% (smooth CN), 15\% ($d_5$)
+and 3\% ($\bar q_4$) of held-out thermal Ih as ice, whereas $\bar q_6$ and
+$\bar s$ keep 99\% at that threshold. In this regime the largest false
+cluster does not grow with system size. In four independent liquids of
+32,768 molecules (one configuration each), $\bar q_6$, $\bar s$, CHILL+ and
+PTM give at most 4, 2, 4 and 0 molecules, and smooth CN 144--287 molecules,
+comparable to the typical largest cluster of one 4096-molecule frame
+(240--260). With the TIP4P/Ice thresholds unchanged, TIP4P/2005 liquids at
+220 and 200~K and the mW liquid behave like the TIP4P/Ice liquid for the
+recommended rules: their largest false clusters have at most 15 molecules
+($\bar s$, TIP4P/2005 at 200~K) and at most 11 for the others. Frozen
+thresholds fail in dense liquids instead. Crystalline connections, whose
+count of correlated $\mathbf q_6$ bonds rises with density, report false
+clusters of up to 18--47 molecules at 0.3--1.0~GPa. In the nearly arrested
+liquid at 3.0~GPa they report clusters of about 580 molecules on average,
+which connect to their own periodic image in up to 78\% of frames, and
+there $\bar s$ also finds false clusters of up to 77 molecules.
 
 \begin{figure}[H]
 \centering
@@ -1237,8 +1315,8 @@ also finds false clusters of up to 58 molecules.
 \caption{Largest connected cluster of molecules labeled ice in liquids that
 were not used for fitting, with rules frozen on TIP4P/Ice at 220~K (thresholds
 from C1--C3 thermal Ih versus liquid; labelers at their published
-settings). Worst of 60 frames, averaged over preparations (TIP4P/Ice 220~K:
-C4 and C5).}
+settings). Largest cluster in any frame of any preparation (60 frames each;
+TIP4P/Ice 220~K: C4 and C5).}
 \label{fig:false}
 \end{figure}
 
@@ -1401,8 +1479,9 @@ classifier would work for all phases at once. The 220~K TIP4P/Ice liquid
 relaxes on a time comparable to its equilibration (it shows no aging in the
 order parameters, but it is not far beyond one relaxation time), and the
 3.0~GPa liquid is nearly arrested. The interface-depth results hold for
-TIP4P/Ice at 220~K and a short time after release; at other temperatures, or
-for growing and melting interfaces, the dead layer may differ. The ice V
+TIP4P/Ice at 220~K, up to 500~ps after release and for basal and primary
+prism faces; at other temperatures, on other facets, or for growing and
+melting interfaces, the dead layer may differ. The ice V
 analysis characterized molecules by their local coordination rather than by
 crystallographic site, because proton disorder distorts every site
 differently. Ideal-crystal results for proton-ordered phases depend on the
@@ -1440,15 +1519,19 @@ cluster. Rules with good per-molecule scores (smooth CN, $d_5$, $\bar q_4$,
 CHILL+ with its interfacial class) form false clusters of tens of molecules or
 more in supercooled liquid, and density-sensitive rules such as crystalline
 connections do so in compressed liquid.
-\item \emph{Correct nucleus sizes for the labeler's dead layer.} Measure the
-labeler's recall against depth once on a planar interface for the observable
-you report (correct polytype or largest cluster), integrate it to a bulk
-recall $f$ and dead layer $\delta$ below the outermost molecular plane, and
-recover the size with \cref{eq:inverse}, $R$ being the equimolar radius. This
-was validated for spherical seeds of 200--1600 molecules in TIP4P/Ice at
-220~K (errors up to 13\% for single seeds with CHILL+, 21\% with PTM); check
-it before relying on it for smaller, faceted or growing nuclei or other
-conditions.
+\item \emph{Correct nucleus sizes for the labeler's dead layer.} Measure,
+once on a planar interface and for the observable you report (correct
+polytype or largest cluster), the bulk recall $f$ and the number of crystal
+molecules the labeler misses per unit area. Convert that number to a dead
+layer $\delta=\Gamma/n$ (\cref{eq:deadlayer}) and recover the size with
+\cref{eq:inverse}, $R$ being the equimolar radius. This was validated for
+spherical seeds of 200--1600 molecules in TIP4P/Ice at 220~K and confirmed on
+seeds prepared afterwards. For single seeds of 200 molecules the errors reach
+10\% (correct-polytype count) and 19\% (largest cluster) with CHILL+, and 25 and
+28\% with PTM. From 400 molecules on they stay within 10\% for both labelers. The size it
+recovers is the constructed size, which exceeds the intact crystal by about
+10\%. Check it before relying on it for smaller, faceted or growing nuclei or
+other conditions.
 \end{enumerate}
 
 \begin{table}[H]
@@ -1471,12 +1554,13 @@ averaging is wanted & CN, $N_\mathrm{HB}$ \\
 Ih vs.\ Ic & $\bar q_3$, $\bar q_4$; $F_4$ if hydrogens are available & ring
 statistics, unaveraged parameters \\
 Polytype labels in nuclei & CHILL+ (Ih, stacking-disordered), CHILL or
-CHILL+ (Ic); dead layer 3.6~\AA{} (CHILL+), 5.5~\AA{} (PTM) at 220~K, so
-labeled sizes of seeds of 200--1600 molecules are 33--65\% (CHILL+) of the
-actual size; recover sizes with \cref{eq:inverse} & CHILL for Ih; comparing nucleus
+CHILL+ (Ic); dead layer 3.4~\AA{} (CHILL+), 5.0~\AA{} (PTM) on basal faces
+at 220~K (10\% thinner on prism faces), so labeled sizes of seeds of
+200--1600 molecules are 33--65\% (CHILL+) of the constructed size; recover
+sizes with \cref{eq:inverse} & CHILL for Ih; comparing nucleus
 sizes from different labelers without correction \\
 Nucleus detection in liquid & $\bar s$, $\bar q_6$, CHILL+, PTM (largest false
-cluster $\le$7 molecules at 220~K) & smooth CN, $d_5$, $\bar q_4$; CHILL+
+cluster $\le$8 molecules at 220~K) & smooth CN, $d_5$, $\bar q_4$; CHILL+
 interfacial class as ice; crystalline connections and $\bar s$ in dense liquid \\
 Distinguishing crystal phases & $\bar s$, smooth CN, Voronoi asphericity,
 $\bar Q$; $\bar q_6$ for VII/VIII & $\hat w_4$, $\hat w_6$, $D$, $N_\mathrm{HB}$,
@@ -1528,8 +1612,8 @@ thermal or quenched), and whether it was tested on held-out data;
 \item for labelers, the classes reported (including interfacial classes) and
 how clusters are built from labels;
 \item for nucleus sizes, the observable counted (correct polytype, largest
-cluster, with or without interfacial classes), the dividing-surface
-convention, the labeler's dead layer or another correction for the surface
+cluster, with or without interfacial classes), the size definition
+(equimolar or other), the labeler's dead layer or another correction for the surface
 layer it misses, and the largest false cluster it reports in liquid at the
 same state point;
 \item for CVs, how continuity and gradients were checked.
@@ -1549,8 +1633,10 @@ near-surface molecules, which makes the size of small nuclei and the width of
 interfaces depend on the labeler. Run F shows that, for spherical seeds of
 200--1600 molecules in TIP4P/Ice at 220~K, this bias is predictable from a
 bulk recall and a dead layer per labeler, measured on a flat interface, and
-can be inverted to recover the size. The open questions are how the dead
-layer changes with temperature, crystal facet, nucleus shape and the
+can be inverted to recover the size, also for seeds prepared after the
+calibration had been fixed. The dead layer is about 10\% thinner on prism
+than on basal faces and nearly constant over 500~ps after release. The open
+questions are how it changes with temperature, nucleus shape and the
 direction of interface motion, how it behaves for learned classifiers, and
 how the corrected sizes relate to thermodynamically defined critical
 nuclei; the constructed seeds of run F are suited to the first of these. Third, transferability. Thresholds of averaged and
@@ -1574,6 +1660,9 @@ contains all coordinates and cells, preparation metadata, the reference
 labels and their meaning, the fixed evaluation splits and every result
 table, with SHA-256 checksums; \texttt{examples/benchmark\_quickstart.py}
 reproduces one published score from the coordinates in a few seconds. The
+confirmation protocol of run G, with the checksums of the frozen calibration,
+is \texttt{benchmarks/confirmation\_protocol.md}, and the package versions of
+the analysis and simulation environments are recorded in the archive. The
 unbinding trajectories of the supplementary applications belong to separate
 path-sampling campaigns and are not part of the archive; the archive holds
 their per-water order parameters, region labels and splits, from which
