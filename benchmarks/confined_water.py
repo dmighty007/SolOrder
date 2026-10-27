@@ -19,8 +19,9 @@ only (protein, benzene and ions are not neighbors).
 Analysis: held-out scores with thresholds fitted on one pair of replicas and
 applied to the other (r1+r2 versus r3+r4, worse direction): cavity3 and
 buried against surface and against bulk. Frozen thresholds (fitted on
-buried versus surface) are then applied to the dry ensemble, to count waters
-near the empty cavity that a rule would call confined, and cavity3 parameters
+buried versus surface water of one replica pair) are then applied near the
+cavity in the other pair, to count waters a rule would call confined in the
+dry and the wet ensemble, and cavity3 parameters
 are followed against benzene's distance from the cavity.
 
 Step export writes cache/applications/t4l_features.npz (archived; analyze
@@ -142,21 +143,32 @@ def analyze(workers):
     scores = pd.DataFrame(rows)
     RESULTS.mkdir(exist_ok=True)
     scores.to_csv(RESULTS/"t4l_scores.csv", index=False)
-    # frozen rules (buried versus surface, all replicas) applied near the cavity
+    # frozen rules: fitted on buried versus surface water of one replica pair, applied near the
+    # cavity in the other pair (each pair has one dry and one wet replica); mean of both directions
     frozen = []
-    buried, surface = t[t.region == "buried"], t[t.region == "surface"]
-    near = t[t.d_centre < 8.]
     for c in OP_COLUMNS:
-        th, below = fit_threshold(buried[c].to_numpy(float), surface[c].to_numpy(float))
-        if not np.isfinite(th):
-            continue
-        flag = hits(near[c].to_numpy(float), th, below)
-        for state in ("dry", "wet"):
-            m = (near.state == state).to_numpy()
-            frames = near[m].groupby(["case", "frame"]).ngroups
-            frozen.append(dict(column=c, state=state, flagged_per_frame=float(flag[m].sum()/max(frames, 1)),
-                               cavity3_recall=float(hits(t.loc[t.region == "cavity3", c].to_numpy(float),
+        directions = []
+        for train in (0, 1):
+            fit, test = t[t.fold == train], t[t.fold != train]
+            th, below = fit_threshold(fit.loc[fit.region == "buried", c].to_numpy(float),
+                                      fit.loc[fit.region == "surface", c].to_numpy(float))
+            if not np.isfinite(th):
+                continue
+            near = test[test.d_centre < 8.]
+            flag = hits(near[c].to_numpy(float), th, below)
+            for state in ("dry", "wet"):
+                m = (near.state == state).to_numpy()
+                frames = near[m].groupby(["case", "frame"]).ngroups
+                directions.append(dict(state=state, flagged=float(flag[m].sum()/max(frames, 1)),
+                                       recall=float(hits(test.loc[test.region == "cavity3", c].to_numpy(float),
                                                          th, below).mean())))
+        if not directions:
+            continue
+        d = pd.DataFrame(directions)
+        for state, g in d.groupby("state"):
+            frozen.append(dict(column=c, state=state, flagged_per_frame=float(g.flagged.mean()),
+                               flagged_min=float(g.flagged.min()), flagged_max=float(g.flagged.max()),
+                               cavity3_recall=float(g.recall.min())))
     pd.DataFrame(frozen).to_csv(RESULTS/"t4l_frozen.csv", index=False)
     # cavity waters as benzene leaves
     cav = t[t.region == "cavity3"].copy()

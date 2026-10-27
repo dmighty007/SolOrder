@@ -8,6 +8,12 @@ evaluation splits and results as an archival dataset. The original design is
 in [docs/benchmark_design.md](../docs/benchmark_design.md) and the work plan
 with its status in [docs/research_workflow.md](../docs/research_workflow.md).
 
+Environments: the analysis scripts and figures need `pip install -e
+'.[descriptors,benchmark]'` (adds scikit-learn, matplotlib and OVITO for PTM);
+the simulations (`md_*.py`) need a separate OpenMM + CUDA environment with
+`pip install -e '.[simulation]'` (OpenMM from conda-forge, networkx). The
+exact versions used are recorded in the release (`metadata/environment_*.txt`).
+
 Datasets:
 
 - **Ideal crystals:** 18 GenIce2 phases (Ih, Ic, II, III, IV, V, VI, VII,
@@ -68,6 +74,8 @@ OMP_NUM_THREADS=1 ../.conda-env/bin/python cost.py --jobs 1   # about 20 min -> 
 <gencompas>/bin/python md_interface.py prepare && <gencompas>/bin/python md_interface.py all   # run F, ~40 min
 ../.conda-env/bin/python interface_depth.py compute && ../.conda-env/bin/python interface_depth.py metrics
 ../.conda-env/bin/python nucleus_size.py       # planar calibration, forward and inverse -> results/nucleus_size*.csv
+<gencompas>/bin/python md_interface.py prepare-confirmation && <gencompas>/bin/python md_interface.py confirmation   # run G, ~10 min
+../.conda-env/bin/python interface_depth.py compute --confirmation && ../.conda-env/bin/python confirmation.py   # frozen calibration on run G -> results/confirmation_*.csv
 ../.conda-env/bin/python host_guest.py scan && ../.conda-env/bin/python host_guest.py compute && ../.conda-env/bin/python host_guest.py analyze   # OAMe-G2, data in cache/oame/
 ../.conda-env/bin/python confined_water.py compute && ../.conda-env/bin/python confined_water.py analyze                                     # T4L L99A, data in cache/t4l/
 ../.conda-env/bin/python host_guest.py export && ../.conda-env/bin/python confined_water.py export   # -> cache/applications/*_features.npz (archived; analyze falls back to them)
@@ -120,9 +128,10 @@ the SolOrder version and the registry hash are written to
 | `results/cost_jobs1.csv`, `cost_jobs8.csv` | Wall time per registry entry and for the whole registry against system size, 1 and 8 threads |
 | `results/figures/F5`, `F6` | Neighbor-convention sensitivity; computational cost |
 | `results/interface_recall.csv`, `interface_prediction.csv`, `interface_prediction_errors.csv`, `interface_dead_layer.csv`, `interface_slab_prediction.csv` | Run F: recall by depth (per size, polytype, preparation), nucleus-size predictions of four models, dead layers |
-| `results/nucleus_size.csv`, `nucleus_size_summary.csv`, `nucleus_size_calibration.csv` | Planar calibration (f, delta per labeler and observable); forward and inverse size per seed, both surface conventions; pooled and per-system errors |
+| `results/nucleus_size.csv`, `nucleus_size_summary.csv`, `nucleus_size_calibration.csv` | Planar calibration (f, count dead layer per labeler and observable, plus the integral variants as sensitivity); forward and inverse size per seed for every definition; pooled, per-system, signed and intact-based errors |
+| `results/confirmation_seeds.csv`, `confirmation_slabs.csv`, `confirmation_time.csv` | Run G: frozen calibration on fresh seeds (300, 600); prism versus basal dead layer; dead layer 2-500 ps after release |
 | `results/oame_paths.csv`, `oame_regions.csv`, `oame_entry.csv`, `oame_drywet.csv`; `t4l_scores.csv`, `t4l_frozen.csv`, `t4l_cavity_track.csv`; `figures/F11` | Beyond ice: path labels, key-water separability, entry prediction (OAMe-G2); confined-water scores, frozen rule, cavity tracking (T4L L99A) |
-| `results/false_nuclei.csv`, `false_nuclei_frames.csv` | Frozen rules on held-out liquids: false-positive fraction, largest false cluster, persistence |
+| `results/false_nuclei.csv`, `false_nuclei_frames.csv`, `false_nuclei_size.csv`, `false_nuclei_thresholds.csv` | Frozen rules on held-out liquids: false-positive fraction, largest false cluster, spanning, persistence; 1%-false-positive thresholds and their ice recall; 32,768-molecule liquids |
 | `results/ice_v_test.csv`, `ice_v_pairs.csv`, `ice_v_classes.csv` | Ice V: best single and pair on p2 and fresh p3; every pair's validation score; errors by structural class |
 | `results/liquid_diagnostics.csv` | Relaxation (MSD, F_s, 1/e time) and aging (energy and OP drift) of every liquid |
 | `results/redundancy_by_phase.csv`, `redundancy_groups.csv` | Spearman \|rho\| within single phases against the pooled analysis |
@@ -274,17 +283,27 @@ accuracies, but see the held-out check, which shows they barely differ here.
   with the right polytype (41–84% incl. interfacial, largest cluster); PTM
   1–50%.
 - **Planar calibration of nucleus size** (`nucleus_size.py`, F10c-d). Size by
-  equimolar radius R = (3N/4 pi n)^(1/3); bulk recall f and dead layer delta
-  below the outermost molecular plane from the slabs only (CHILL+ 3.6 A, PTM
-  5.5 A, correct polytype). Forward N_lab = f N (1 - delta/R)^3; inverse
-  N = (4 pi n/3) [(3 N_lab/(4 pi f n))^(1/3) + delta]^3. All seeds held out;
-  sizes 200-1600, 36 systems per labeler. Inverse from the correct count:
-  CHILL+ 8% pooled, 7% median, 13% max per system; PTM 13/12/21%. From the
-  largest Ih/Ic cluster: CHILL+ 6/5/11%, PTM 13/11/20%. Forward per system:
-  CHILL+ max 15%, PTM 32%. Systematic +5-13% at 400-1600; fails below 200
-  (-9 to -22% mean, single seeds to -58%). Measuring delta from the slab's
-  equimolar surface (0.92 A further out) instead gives +27-35%: the
-  convention matters.
+  equimolar radius R = (3N/4 pi n)^(1/3); from the slabs only, bulk recall f
+  and the count dead layer delta = Gamma/n, Gamma the molecules missed per
+  unit area of one face (CHILL+ 3.4 A, PTM 5.0 A, correct polytype). Forward
+  N_lab = f N (1 - delta/R)^3; inverse N = (4 pi n/3) [(3 N_lab/(4 pi f
+  n))^(1/3) + delta]^3. All seeds held out; sizes 200-1600, 36 systems per
+  labeler. Inverse from the correct count: CHILL+ 5% pooled, 5% median, 10%
+  max per system; PTM 10/5/25%. From the largest Ih/Ic cluster: CHILL+
+  13/2/19%, PTM 13/4/28%, the pooled and maximum errors at 200 molecules;
+  from 400 on every error <= 10%. A depth integral of 1 - p(z)/f depends on
+  how empty bins between the slab's layers are filled (CHILL+ 2.4-3.6 A;
+  pooled error 8-27%), and the equimolar reference plane gives +27-35%:
+  reported as sensitivity, not used. Against the intact count the inverse is
+  +12% (CHILL+ count) and +4% (CHILL+ cluster). CHILL: f depends on polytype
+  (0.70 Ih, 1.00 Ic), up to 26% error.
+- **Confirmation, facets and time** (run G, `confirmation.py`,
+  `confirmation_protocol.md`). Calibration frozen (hashes recorded) before a
+  fourth preparation was built: seeds of 300 and 600 molecules recovered
+  within 5% (CHILL+) and 7% (PTM) from the count, 9-10% from the largest
+  cluster; all 24 within the pre-stated criterion. Prism {10-10} slabs: dead
+  layer 10% thinner (CHILL+ 3.05 A, PTM 4.5 A); basal p4 reproduces 3.37 /
+  5.04 A. Over 500 ps the CHILL+ dead layer is constant, PTM +0.13 A.
 - **Beyond ice: key and confined water** (supplementary material, `manuscript/supplement.tex`; `host_guest.py`, `confined_water.py`,
   F11). Water-only parameters, unchanged, on PathGennie unbinding paths
   (copied from gluon; not part of the release). OAMe-G2 (208 paths, TIP3P):
@@ -295,18 +314,22 @@ accuracies, but see the held-out check, which shows they barely differ here.
   indistinguishable (<= 0.64); entry within 10 saved states predicted by
   position (distance to portal AUC 0.996; position model 0.997; OPs add
   nothing). T4L L99A (89 paths, SPC/E): the three wet-cavity waters vs
-  surface water 0.99 (Voronoi), 0.98 (smooth CN), 0.96 (q6 averaged, CN),
-  Q averaged and d5 < 0.5; other buried waters <= 0.80; frozen buried-vs-
-  surface rule flags 3.3–3.4 waters per frame near the wet cavity (3 present,
-  recall 0.99–1.00) and 1.0–1.2 near the dry one. Signal = missing water
+  surface water 0.99 (Voronoi), 0.97 (smooth CN), 0.96 (q6 averaged, CN),
+  Q averaged and d5 < 0.5; other buried waters <= 0.80; a buried-vs-surface
+  rule fitted on one replica pair flags 3.4 waters per frame near the wet
+  cavity in the other pair (3 present, recall 0.999) and 1.2 near the dry
+  one. Signal = missing water
   neighbors; high q_l of isolated waters is a few-neighbor artifact.
 - **False nuclei** (`false_nuclei.py`, F9). Rules frozen on C1–C3 (Ih vs liquid)
-  on held-out liquids: q6 averaged, averaged entropy, CHILL+ and PTM give
-  largest false clusters ≤ 7 molecules at 220 K (PTM none). CHILL+ incl.
-  interfacial: 10% of the liquid, clusters up to 27 (~40% persist 5 ps).
-  Smooth CN (27%), d5 and q4 averaged (20%): clusters of 70–600. Crystalline
-  connections: 17–42 at 0.3–1 GPa, box-spanning at 3 GPa; averaged entropy
-  up to 58 at 3 GPa.
+  on held-out liquids (largest cluster in any frame of any preparation): q6
+  averaged 8, averaged entropy 7, CHILL+ 4, PTM 0 at 220 K. CHILL+ incl.
+  interfacial: 10% of the liquid, clusters up to 30 (30-45% persist 5 ps).
+  Smooth CN (27%): up to 700, spanning the box in 5-12% of frames; d5, q4
+  averaged (20%): up to 75 / 98. At a 1%-false-positive threshold these give
+  <= 6 but recall only 0.5% / 15% / 3% of Ih. 32,768-molecule liquids: no
+  growth with size. TIP4P/2005 and mW: recommended rules <= 15. Crystalline
+  connections: 18-47 at 0.3-1 GPa, ~580 spanning in up to 78% of frames at
+  3 GPa; averaged entropy up to 77 at 3 GPa.
 - **Ice V** (`ice_v.py`). Best single (q4 averaged) 0.848 / 0.847 on p2 / fresh
   p3; errors ~10% in every coordination class (5–9 O within 3.5 A) and with or
   without 4-rings. Pair smooth CN + q4 averaged, selected on p1 only: 0.923 /

@@ -9,7 +9,8 @@ Layout of release/solorder-ice-benchmark-v<VERSION>/:
                    replicas/    runs C1-C5
                    conditions/  runs D (TIP4P/2005, TIP4P/Ice NPT control) and E
                                 (high pressure); conditions/mw_inputs/ is mW
-                   interface/   run F (seeds of 50-1600 molecules, slabs)
+                   interface/   run F (seeds of 50-1600 molecules, slabs) and the
+                                run G confirmation set (G_*, preparation p4)
                    applications/ per-water order-parameter tables of the two
                                 unbinding-path applications (supplementary
                                 material); the trajectories are not included
@@ -34,6 +35,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 BENCH = ROOT/"benchmarks"
@@ -49,7 +51,8 @@ COORDINATES = {  # destination: (source, patterns)
     "conditions": (CACHE/"conditions", ("D_*.npz", "D_*.json", "E_*.npz", "E_*.json", "E_*.gro", "E_*.top",
                                         "mw_inputs/*.npz", "mw_inputs/*.json", "mw_inputs/*.gro",
                                         "mw_inputs/*.npy", "mw_inputs/*.py", "mw_inputs/*.sh")),
-    "interface": (CACHE/"interface", ("F_seed_*", "F_slab_*", "F_liquid_*.npz")),
+    "interface": (CACHE/"interface", ("F_seed_*", "F_slab_*", "F_liquid_*.npz", "G_seed_*", "G_prism_*",
+                                      "G_long_*")),
     "applications": (CACHE/"applications", ("*_features.npz",)),
 }
 CODE = ("src/SolOrder/*.py", "benchmarks/*.py", "benchmarks/README.md", "scripts/*.py", "examples/*.py",
@@ -62,7 +65,9 @@ DESCRIPTIONS = {
     "replicas": "runs C1-C5: five independent preparations, TIP4P/Ice 220 K (Ih, Ic also 250 K)",
     "conditions": "run D: TIP4P/2005 (220, 200 K) and TIP4P/Ice NPT control on the C1-C3 structures, mW "
                   "(mw_inputs/); run E: ices II, III, V, VI, VII, VIII and pressure-matched liquids",
-    "interface": "run F: Ih, Ic, Isd seeds of 50-1600 molecules and planar slabs, three preparations",
+    "interface": "run F: Ih, Ic, Isd seeds of 50-1600 molecules and planar basal slabs, three preparations; "
+                 "run G (G_*): seeds of 300 and 600 molecules, prism slabs and basal slabs followed to 500 ps, "
+                 "a fourth preparation built after the calibration was frozen (confirmation_protocol.md)",
     "applications": "supplementary applications: water-only order parameters, geometric region labels and "
                     "split columns per water and frame for OAMe-G2 (oame_features.npz) and T4L L99A "
                     "(t4l_features.npz) unbinding paths; input of host_guest.py analyze and "
@@ -81,7 +86,10 @@ SPLITS = {
     "pressure": {"fit": "E p1 (p2)", "test": "E p2 (p1)", "report": "worse direction"},
     "ice_V": {"select": "E_V_p1 and E_liquid_p1_0.5GPa, frames 0-29 fit, 30-59 validate", "refit": "p1",
               "test": ["p2", "p3 (used only for the final test)"]},
-    "nucleus_size": {"calibrate": "interface F_slab_* only", "test": "every interface F_seed_*"},
+    "nucleus_size": {"calibrate": "interface F_slab_* only (count dead layer, frozen before run G)",
+                     "test": "every interface F_seed_*",
+                     "confirm": "interface G_seed_* (built and simulated after the calibration was frozen)",
+                     "facet_and_time": "interface G_prism_*, G_long_* (measured, never used to recalibrate)"},
     "interface_depth_models": {"fit": "F_seed_* of 100 and 200 molecules (and F_slab_*)",
                                "test": "F_seed_* of 50, 400, 800 and 1600 molecules"},
     "sensitivity": {"fit": "replicas p1 at the default setting", "test": "p2 and p3 at each varied setting"},
@@ -106,7 +114,12 @@ All labels describe how a structure was constructed, not what a labeler says.
   molecule).
 - `depth` (interface): R - r for seeds, the distance below the outermost
   constructed oxygen; for slabs, the distance below the outermost oxygen plane
-  of the nearer face. NaN for liquid.
+  of the nearer face (prism slabs G_prism_*: the {10-10} face). NaN for liquid.
+- `time_ps` (interface *.npz of run G): time after release of each saved frame.
+- Dead layer (benchmarks/nucleus_size.py): delta = Gamma/n, Gamma the number of
+  crystal molecules a labeler misses per unit area of one slab face
+  (sum of 1 - p_i/f over crystal molecules, per face and frame), f its recall
+  deeper than 8 A.
 - `R` (seedtest, interface): radius of the outermost constructed seed molecule.
   The equimolar radius used for nucleus sizes is (3N/4 pi n)^(1/3) with
   n = 3/(A^2 sqrt(3) B), A = B sqrt(8/3), B = 2.76 A (benchmarks/nucleus_size.py).
@@ -182,6 +195,15 @@ def code_snapshot():
     return info
 
 
+def freeze(python):
+    """`pip freeze` of an interpreter, or a note if it is not available."""
+    try:
+        result = subprocess.run([str(python), "-m", "pip", "freeze"], capture_output=True, text=True, timeout=120)
+        return result.stdout if result.returncode == 0 else f"# pip freeze failed: {result.stderr.strip()}\n"
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return f"# not recorded: {error}\n"
+
+
 def main():
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -198,9 +220,15 @@ def main():
     (OUT/"LABELS.md").write_text(LABELS)
     (OUT/"TOPOLOGY.md").write_text(TOPOLOGY)
     copy(ROOT/"docs/forcefield_modification.diff", OUT/"forcefield_modification.diff")
+    copy(BENCH/"confirmation_protocol.md", OUT/"confirmation_protocol.md")
     import SolOrder
     (OUT/"metadata/versions.json").write_text(json.dumps(dict(solorder=SolOrder.__version__, release=VERSION,
                                                               code=info, datasets=datasets), indent=1))
+    (OUT/"metadata/environment_analysis.txt").write_text(f"# environment {Path(sys.executable).parents[1].name}\n" + freeze(sys.executable))
+    md_python = os.environ.get("SOLORDER_MD_PYTHON")
+    (OUT/"metadata/environment_simulation.txt").write_text(
+        f"# environment {Path(md_python).parents[1].name}\n" + freeze(md_python) if md_python else
+        "# set SOLORDER_MD_PYTHON to the OpenMM interpreter when building the release\n")
     (OUT/"README.md").write_text(readme(datasets, info))
     files = sorted(p for p in OUT.rglob("*") if p.is_file() and p.name != "MANIFEST.sha256")
     (OUT/"MANIFEST.sha256").write_text("".join(f"{sha256(p)}  {p.relative_to(OUT)}\n" for p in files))
@@ -217,11 +245,13 @@ def readme(datasets, info):
              "## Contents", ""]
     lines += [f"- `coordinates/{k}/` ({v['files']} files): {v['description']}" for k, v in datasets.items()]
     lines += [f"- `code/`: the exact code used (git commit {info['commit'][:10]} plus `code/uncommitted.diff`)",
-              "- `results/`: every result table and figure; `splits.json`, `LABELS.md`, `TOPOLOGY.md`", "",
+              "- `results/`: every result table and figure; `splits.json`, `LABELS.md`, `TOPOLOGY.md`",
+              "- `confirmation_protocol.md`: the frozen nucleus-size calibration and pass criterion, written",
+              "  before the run G confirmation set was simulated", "",
               "## Reproduce", "",
               "```sh",
               "conda env create -f code/environment.yml && conda activate solorder-dev",
-              "pip install -e 'code[descriptors,ptm]'",
+              "pip install -e 'code[descriptors,benchmark]'",
               "mkdir -p code/benchmarks/cache && cp -r coordinates/* code/benchmarks/cache/",
               "mkdir -p code/benchmarks/results && cp -r results/. code/benchmarks/results/  # archived tables",
               "python code/examples/benchmark_quickstart.py        # one published score in seconds",
@@ -229,7 +259,8 @@ def readme(datasets, info):
               "cd code/benchmarks",
               "python compute.py && python metrics.py              # per-molecule tables, separability",
               "python seed_audit.py && python interface_depth.py compute && python interface_depth.py metrics",
-              "python nucleus_size.py && python false_nuclei.py && python ice_v.py",
+              "python nucleus_size.py && python interface_depth.py compute --confirmation && python confirmation.py",
+              "python false_nuclei.py && python ice_v.py",
               "python sensitivity.py compute && python sensitivity.py metrics",
               "python liquid_diagnostics.py && python redundancy_by_phase.py",
               "python host_guest.py analyze && python confined_water.py analyze  # from coordinates/applications",
@@ -242,8 +273,12 @@ def readme(datasets, info):
               "parameters and labels but not the unbinding trajectories (separate path-sampling",
               "campaigns); host_guest.py scan/compute and confined_water.py compute need those.", "",
               "Simulations (OpenMM with CUDA) are rerun with md_replicas.py, md_conditions.py, md_mw.py and",
-              "md_interface.py; the seed test with coordinates/seedtest/build.py and md.py. Set",
-              "SOLORDER_SEEDTEST to use a seed-test folder outside benchmarks/cache/.", "",
+              "md_interface.py; the seed test with coordinates/seedtest/build.py and md.py. They need a",
+              "separate environment, e.g. `conda create -n solorder-md -c conda-forge python=3.11 openmm",
+              "networkx scipy` followed by `pip install -e 'code[simulation]'`. Set SOLORDER_SEEDTEST to use",
+              "a seed-test folder outside benchmarks/cache/.", "",
+              "The exact package versions used are in metadata/environment_analysis.txt (analysis) and",
+              "metadata/environment_simulation.txt (simulations).", "",
               "Data license: CC BY 4.0. Code license: MIT."]
     return "\n".join(lines) + "\n"
 

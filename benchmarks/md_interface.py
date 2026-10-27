@@ -16,6 +16,14 @@ Systems, TIP4P/Ice at 220 K, three independent preparations p1-p3:
 Each preparation also has its own liquid (tiled seed-test liquid, remelted at
 300 K with a new velocity seed and re-equilibrated at 220 K, NVT).
 
+Confirmation set (run G, preparation p4, built and analyzed only after the
+calibration was frozen in confirmation_protocol.md):
+  G_seed_<kind>_<N>_p4     seeds of N = 300 and 600 molecules, sizes not used before
+  G_prism_<kind>_p4        planar slab with primary prism faces {10-10} (stacking
+                           axis in the interface plane), standard protocol
+  G_long_<kind>_p4         basal slab, frames at 2-20 ps every 2 ps and then
+                           every 20 ps to 500 ps (time dependence of the dead layer)
+
 Protocol as the seed test (ice_nucleation_pg/data/seedtest/md.py): crystal
 oxygens restrained (5000 kJ/mol/nm^2) during minimization and 20 ps, so the
 liquid wets the crystal; released; 10 frames 2 ps apart. Construction labels
@@ -26,6 +34,7 @@ Needs OpenMM with CUDA (e.g. the gencompas conda environment):
   python md_interface.py --list
   python md_interface.py prepare            # structures (CPU) and liquids (GPU)
   python md_interface.py all | <systems>
+  python md_interface.py prepare-confirmation && python md_interface.py confirmation
 Outputs go to cache/interface/ (not committed).
 """
 
@@ -56,11 +65,20 @@ INSERT_MARGIN = 2.2  # A; liquid removed within R + margin, as in the seed test
 OVERLAP = 2.5  # A; minimum O-O distance when liquid is cut into a new periodic box
 RESTRAINT, RESTRAINED_PS, FRAMES, STRIDE_PS = 5000., 20, 10, 2
 LIQUID_MELT_PS, LIQUID_EQUIL_PS = 50, 300
+CONFIRM_PREP, CONFIRM_SIZES = 4, (300, 600)
+PRISM = (12, 6, 12)  # NX, NY, layers; the slab normal is y (46.8 A), the in-plane period 54 x 44 A
+LONG_TIMES = (*range(2, 21, 2), *range(40, 501, 20))  # ps after release
 
 
 def systems():
     out = [f"F_seed_{k}_{n}_p{p}" for p in PREPS for k in KINDS for n in SIZES]
     return out + [f"F_slab_{k}_p{p}" for p in PREPS for k in KINDS]
+
+
+def confirmation_systems():
+    p = CONFIRM_PREP
+    return ([f"G_seed_{k}_{n}_p{p}" for k in KINDS for n in CONFIRM_SIZES]
+            + [f"G_prism_{k}_p{p}" for k in KINDS] + [f"G_long_{k}_p{p}" for k in KINDS])
 
 
 def stacking(kind, layers, rng):
@@ -150,8 +168,8 @@ def unwrap_molecules(xyz, box):
     return xyz[:, :1] + md_replicas.minimum_image(xyz - xyz[:, :1], box)
 
 
-def prepare_seed(kind, size, prep):
-    name = f"F_seed_{kind}_{size}_p{prep}"
+def prepare_seed(kind, size, prep, prefix="F"):
+    name = f"{prefix}_seed_{kind}_{size}_p{prep}"
     if (OUT/f"{name}.gro").exists():
         return
     rng = np.random.default_rng([2027, KINDS.index(kind), size, prep])
@@ -187,14 +205,20 @@ def prepare_seed(kind, size, prep):
     (OUT/f"{name}.prep.json").write_text(json.dumps(meta, indent=1))
 
 
-def prepare_slab(kind, prep):
-    """Periodic slab spanning x and y, liquid above and below in z: two basal interfaces."""
-    name = f"F_slab_{kind}_p{prep}"
+def prepare_slab(kind, prep, name=None, facet="basal"):
+    """Periodic slab spanning x and y, liquid above and below in z: two basal (or prism) interfaces.
+
+    For facet="prism" the crystal is built with the stacking axis along z and rotated
+    (cyclic x, y, z -> y, z, x) so that the old y axis, normal to {10-10}, becomes the slab normal.
+    """
+    name = name or f"F_slab_{kind}_p{prep}"
     if (OUT/f"{name}.gro").exists():
         return
-    rng = np.random.default_rng([2028, KINDS.index(kind), prep])
-    xyz, box, stack, layer, _, sequence, dipole = crystal(kind, SLAB, rng)
+    rng = np.random.default_rng([2028 if facet == "basal" else 2029, KINDS.index(kind), prep])
+    xyz, box, stack, layer, _, sequence, dipole = crystal(kind, SLAB if facet == "basal" else PRISM, rng)
     xyz = unwrap_molecules(xyz, box)
+    if facet == "prism":
+        xyz, box = xyz[..., [2, 0, 1]], box[[2, 0, 1]]
     thickness = box[2]
     liquid = np.load(liquid_path(prep))
     lxyz, lbox = liquid["x"], liquid["box"]
@@ -225,7 +249,7 @@ def prepare_slab(kind, prep):
              stack=np.r_[stack, np.zeros(n-size, np.int8)], depth=np.r_[depth, np.full(n-size, np.nan)],
              R=np.inf, restrained=size)
     write_gro(OUT/f"{name}.gro", total, total_box, f"{name} slab {sequence}")
-    meta = dict(kind=kind, prep=prep, stacking=sequence, dipole=dipole, molecules=n, crystal=size,
+    meta = dict(kind=kind, prep=prep, facet=facet, stacking=sequence, dipole=dipole, molecules=n, crystal=size,
                 liquid=len(lsel), box=total_box.tolist())
     (OUT/f"{name}.prep.json").write_text(json.dumps(meta, indent=1))
 
@@ -259,13 +283,15 @@ def simulate(name):
     ctx.setVelocitiesToTemperature(220*unit.kelvin, seed)
     integrator.step(RESTRAINED_PS*500)
     ctx.setParameter("k", 0.)
-    frames = []
-    for _ in range(FRAMES):
-        integrator.step(STRIDE_PS*500)
+    times = LONG_TIMES if name.startswith("G_long") else tuple(STRIDE_PS*(k+1) for k in range(FRAMES))
+    frames, now = [], 0
+    for t in times:
+        integrator.step((t - now)*500)
+        now = t
         frames.append(ctx.getState(getPositions=True).getPositions(asNumpy=True)
                       .value_in_unit(unit.angstrom).astype(np.float32))
     box = np.diag(ctx.getState().getPeriodicBoxVectors(asNumpy=True).value_in_unit(unit.angstrom))
-    np.savez_compressed(OUT/f"{name}.npz", x=np.array(frames), box=box)
+    np.savez_compressed(OUT/f"{name}.npz", x=np.array(frames), box=box, time_ps=np.array(times))
     print(f"{name}: {len(frames[0])//4} molecules, {time.time()-start:.0f} s", flush=True)
 
 
@@ -275,9 +301,18 @@ def main():
     parser.add_argument("--list", action="store_true")
     args = parser.parse_args()
     if args.list:
-        print("\n".join(systems()))
+        print("\n".join(systems() + confirmation_systems()))
         return
     OUT.mkdir(parents=True, exist_ok=True)
+    if args.systems == ["prepare-confirmation"]:
+        prep = CONFIRM_PREP
+        prepare_liquid(prep)
+        for kind in KINDS:
+            for size in CONFIRM_SIZES:
+                prepare_seed(kind, size, prep, prefix="G")
+            prepare_slab(kind, prep, name=f"G_prism_{kind}_p{prep}", facet="prism")
+            prepare_slab(kind, prep, name=f"G_long_{kind}_p{prep}")
+        return
     if args.systems == ["prepare"]:
         for prep in PREPS:
             prepare_liquid(prep)
@@ -286,7 +321,7 @@ def main():
                 for size in SIZES:
                     prepare_seed(kind, size, prep)
         return
-    selected = systems() if args.systems == ["all"] else args.systems
+    selected = {"all": systems(), "confirmation": confirmation_systems()}.get(" ".join(args.systems), args.systems)
     for name in selected:
         if (OUT/f"{name}.npz").exists():
             print(f"{name}: exists, skipped")

@@ -25,6 +25,7 @@ Step "metrics":
 
   python interface_depth.py compute   # cache/interface.pkl, cache/interface_clusters.pkl
   python interface_depth.py metrics   # results/interface_*.csv
+  python interface_depth.py compute --confirmation   # run G -> cache/confirmation.pkl, confirmation_clusters.pkl
 """
 
 import argparse
@@ -53,10 +54,12 @@ INTACT_DISTANCE, BOND = 1., 3.5
 
 
 def parse(name):
+    """F_seed_<kind>_<N>_p<k>, F_slab_<kind>_p<k>; confirmation set G_seed_..., G_prism_..., G_long_..."""
     parts = name.split("_")
     if parts[1] == "seed":
-        return dict(geometry="seed", kind=parts[2], size=int(parts[3]), prep=int(parts[4][1:]))
-    return dict(geometry="slab", kind=parts[2], size=0, prep=int(parts[3][1:]))
+        return dict(geometry="seed", kind=parts[2], size=int(parts[3]), prep=int(parts[4][1:]), facet="")
+    return dict(geometry="slab", kind=parts[2], size=0, prep=int(parts[3][1:]),
+                facet="prism" if parts[1] == "prism" else "basal")
 
 
 def labels(op):
@@ -94,6 +97,7 @@ def system_task(name):
     # constructed lattice bonds inside the crystal
     within = mda.lib.distances.self_capped_distance(start, 3.0, box=box)[0]
     rows, clusters = [], []
+    times = frames["time_ps"] if "time_ps" in frames.files else 2.*(np.arange(len(frames["x"])) + 1)
     for f, x in enumerate(frames["x"]):
         u.atoms.positions = x
         u.dimensions = box
@@ -105,12 +109,12 @@ def system_task(name):
         bond = np.linalg.norm(minimize_vectors(o[crystal][within[:, 0]] - o[crystal][within[:, 1]], box), axis=1)
         broken = np.bincount(within[bond > BOND].ravel(), minlength=crystal.sum())
         intact = (np.linalg.norm(moved, axis=1) < INTACT_DISTANCE) & (broken == 0)
-        table = dict(frame=f, depth=truth["depth"][crystal], stack=truth["stack"][crystal], intact=intact,
+        table = dict(frame=f, time_ps=float(times[f]), depth=truth["depth"][crystal], stack=truth["stack"][crystal], intact=intact,
                      **{k: v[crystal].astype(np.int8) for k, v in lab.items()})
         rows.append(pd.DataFrame(table))
         pairs = op.neighbor_list(3.5)
         edges = np.c_[np.repeat(np.arange(op.n), np.diff(pairs.offsets)), pairs.indices]
-        cluster = dict(name=name, **meta, frame=f, constructed=int(crystal.sum()))
+        cluster = dict(name=name, **meta, frame=f, time_ps=float(times[f]), constructed=int(crystal.sum()))
         for k, v in lab.items():
             ice = np.isin(v, (1, 2))
             cluster[f"{k}_largest"] = largest_cluster(ice, edges)
@@ -127,12 +131,15 @@ def system_task(name):
     return out, pd.DataFrame(clusters)
 
 
-def compute(names, workers):
-    names = names or sorted(p.name.removesuffix(".npz") for p in INTERFACE.glob("F_s*.npz") if ".truth" not in p.name)
+def compute(names, workers, confirmation=False):
+    """Run F -> cache/interface*.pkl; the confirmation set (run G) -> cache/confirmation*.pkl."""
+    prefix, out = ("G_", "confirmation") if confirmation else ("F_s", "interface")
+    names = names or sorted(p.name.removesuffix(".npz") for p in INTERFACE.glob(f"{prefix}*.npz")
+                            if ".truth" not in p.name and "liquid" not in p.name)
     results = Parallel(n_jobs=workers)(delayed(system_task)(n) for n in names)
-    pd.concat([r[0] for r in results], ignore_index=True).to_pickle(CACHE/"interface.pkl")
-    pd.concat([r[1] for r in results], ignore_index=True).to_pickle(CACHE/"interface_clusters.pkl")
-    print(f"interface: {len(names)} systems")
+    pd.concat([r[0] for r in results], ignore_index=True).to_pickle(CACHE/f"{out}.pkl")
+    pd.concat([r[1] for r in results], ignore_index=True).to_pickle(CACHE/f"{out}_clusters.pkl")
+    print(f"{out}: {len(names)} systems")
 
 
 def outcomes(table, method):
@@ -303,5 +310,6 @@ if __name__ == "__main__":
     parser.add_argument("step", choices=("compute", "metrics"))
     parser.add_argument("names", nargs="*")
     parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument("--confirmation", action="store_true", help="the run G confirmation set")
     args = parser.parse_args()
-    compute(args.names, args.workers) if args.step == "compute" else metrics()
+    compute(args.names, args.workers, args.confirmation) if args.step == "compute" else metrics()

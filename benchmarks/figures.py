@@ -466,7 +466,7 @@ def f9_false_nuclei():
     """Largest false ice cluster in liquids, frozen rules (false_nuclei.py)."""
     table = pd.read_csv(RESULTS/"false_nuclei.csv")
     table["ref"] = table.reference.str.replace(r" \(.*\)", "", regex=True)
-    matrix = table.groupby(["rule", "ref"]).largest_max.mean().unstack("ref")
+    matrix = table.groupby(["rule", "ref"]).largest_max.max().unstack("ref")  # worst frame of any preparation
     matrix = matrix.loc[list(RULE_NAMES), REFERENCE_ORDER]
     fig, ax = plt.subplots(figsize=(7.4, 5.2))
     values = np.log10(matrix.to_numpy(float) + 1)
@@ -493,7 +493,9 @@ def f10_interface():
     """Polytype recall against depth by seed size; forward and inverse size correction (run F)."""
     recall = pd.read_csv(RESULTS/"interface_recall.csv")
     sizes = pd.read_csv(RESULTS/"nucleus_size.csv")
-    sizes = sizes[sizes.convention == "molecular"]
+    sizes = sizes[sizes.definition == "count"]
+    confirmation = RESULTS/"confirmation_seeds.csv"
+    confirmation = pd.read_csv(confirmation) if confirmation.exists() else None
     calibration = pd.read_csv(RESULTS/"nucleus_size_calibration.csv")
     fig, axes = plt.subplots(1, 4, figsize=(15, 3.9))
     for ax, method, letter in zip(axes[:2], ("chill_plus", "ptm"), "ab"):
@@ -502,7 +504,8 @@ def f10_interface():
             part = rows[(rows.geometry == "seed") & (rows.subset == f"n{size}") & (rows.n >= 30)]
             ax.plot(part.depth, part.correct, color=color, lw=2, label=f"seed, N = {size}")
         slab = rows[(rows.geometry == "slab") & (rows.subset == "all") & (rows.n >= 30)]
-        ax.plot(slab.depth, slab.correct, color=INK, lw=2, ls="--", label="planar interface")
+        ax.plot(slab.depth, slab.correct, "o", color=INK, ms=6, mfc=SURFACE, mew=1.6,
+                label="planar interface (molecular layers)")
         ax.set_xlim(0, 14)
         ax.set_ylim(-.02, 1.02)
         ax.set_xlabel("depth below the outermost molecules (Å)")
@@ -520,8 +523,9 @@ def f10_interface():
         pooled = part.groupby("size").agg(R=("R_equimolar", "mean"), observed=("observed", "mean"))
         ax.plot(pooled.R, pooled.observed/pooled.index, "o", ms=5, color=color, label=f"{label}, mean")
         c = calibration[(calibration.observable == "correct") & (calibration.method == method)].iloc[0]
-        ax.plot(radius, c.bulk_recall*np.clip(1 - c.dead_layer/radius, 0, None)**3, color=color, lw=1.5, ls="--",
-                label=f"{label}: f(1 − δ/R)³, δ = {c.dead_layer:.1f} Å")
+        delta = c["count"]
+        ax.plot(radius, c.bulk_recall*np.clip(1 - delta/radius, 0, None)**3, color=color, lw=1.5, ls="--",
+                label=f"{label}: f(1 − δ/R)³, δ = {delta:.1f} Å")
     ax.set_xlabel("equimolar seed radius R (Å)")
     ax.set_ylabel("correctly labeled / constructed molecules")
     ax.set_ylim(0, 1)
@@ -534,6 +538,10 @@ def f10_interface():
         jitter = 1 + .06*(list(styles).index(method) - .5)
         ax.scatter(part["size"]*jitter, part.inverse, s=12, color=color, alpha=.6, edgecolor="none",
                    label=f"{label}, from largest cluster")
+        if confirmation is not None:
+            g = confirmation[(confirmation.observable == "cluster") & (confirmation.method == method)]
+            ax.scatter(g["size"]*jitter, g.inverse, s=28, marker="D", facecolor=color, edgecolor=INK, lw=.8,
+                       label=f"{label}, confirmation set (run G)")
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xticks([50, 100, 200, 400, 800, 1600], ["50", "100", "200", "400", "800", "1600"])
@@ -542,7 +550,7 @@ def f10_interface():
     ax.set_xlabel("constructed nucleus size N")
     ax.set_ylabel("size recovered from the labeled count")
     ax.set_title("(d) Inverse: recovered size", loc="left")
-    ax.legend(frameon=False, fontsize=7, loc="upper left")
+    ax.legend(frameon=False, fontsize=6.5, loc="upper left")
     for ax in axes:
         for side in ("top", "right"):
             ax.spines[side].set_visible(False)
