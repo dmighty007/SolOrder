@@ -1,0 +1,725 @@
+\documentclass{template1}
+\usepackage{hyperref}
+\usepackage{gensymb}
+\usepackage{xcolor}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage [autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+
+% Outline annotations: \plan{} = intended content, \reuse{} = existing material
+% to adapt, \code{} = SolOrder API or script that supplies the numbers.
+% Delete these macros' uses as sections are written.
+\newcommand{\plan}[1]{\par\noindent\textcolor{gray}{\textit{Plan: #1}}\par}
+\newcommand{\reuse}[1]{\par\noindent\textcolor{teal}{\textit{Reuse: #1}}\par}
+\newcommand{\code}[1]{\par\noindent\textcolor{violet}{\textit{SolOrder: #1}}\par}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+
+\project{Topical Review}
+\title{Local order parameters for ice polymorphs: a unified comparison and practical guide}
+\author{Dibyendu Maity}
+\faculty{Engineering}
+\department{Chemical and Biological Sciences}
+\abst{
+  Molecular simulations of water and ice depend on local order parameters to
+  distinguish solid from liquid, one ice polymorph from another, and to track
+  nucleation, growth and interfaces at single-molecule resolution. Dozens of
+  such parameters have been proposed, from tetrahedral order and the local
+  structure index to Steinhardt bond-orientational invariants, CHILL+,
+  template matching and machine-learned descriptors, yet they are usually
+  compared using values taken from different codes, cutoffs and water models.
+  Here we review these parameters within a single taxonomy organized by the
+  structural information they encode, and benchmark \todo{N} of them with one
+  consistent, open implementation (SolOrder) on \todo{N} crystalline phases,
+  amorphous ices and liquid water, in both ideal and thermalized
+  configurations. We quantify pairwise phase separability, sensitivity to
+  neighbor definitions, computational cost and suitability as collective
+  variables, and discuss where data-driven descriptors and learned
+  classifiers improve on physically motivated parameters. We conclude with
+  practical recommendations for choosing an order parameter for a given
+  question.
+}
+
+\begin{document}
+
+% Previous draft (thesis-style report) is preserved in new_v1.tex.
+% Chapter files below are still used as source material via \reuse{} notes.
+
+%=====================================================================
+\chapter{Introduction}\label{ch:intro}
+%=====================================================================
+\plan{Why local structure matters in water and ice simulation: nucleation,
+polymorph selection, interfaces, hydrates. Define a local order parameter (LOP)
+and separate the three jobs it can do: classification (labeling molecules),
+description (distributions as fingerprints), and collective variables
+(driving enhanced sampling). State the gap: existing comparisons mix codes,
+cutoffs and water models. State the contributions: taxonomy, unified
+benchmark, practical guide, open software.}
+\reuse{intro/introduction.tex paragraphs 4--5 (phase-space complexity,
+Hansen2021 phase diagram figure); drop the per-phase descriptions in
+paragraphs 1--2, which move to Chapter~\ref{ch:phases}.}
+\todo{literature update 2023--2026: ML potentials, data-driven CVs for ice
+nucleation, recent order-parameter reviews to position against.}
+
+\section{Scope and organization}
+\plan{What is covered (bulk crystalline ices, clathrate frameworks, amorphous
+ices, liquid; local per-molecule parameters) and what is not (global
+crystallographic analysis, spectroscopic observables, electronic structure).}
+
+%=====================================================================
+\chapter{The ice landscape in brief}\label{ch:phases}
+%=====================================================================
+\plan{Short narrative of the phase diagram plus one master table; no
+per-phase subsections.}
+\reuse{icephases/icephases.tex; condense into the table and keep 3--4
+representative structure figures (Ih, Ic, VI, sI).}
+
+\section{Phase diagram and stability}
+\plan{Experimental vs.\ model (TIP4P/Ice, TIP4P/2005, mW) phase diagrams;
+proton order--disorder pairs; metastable phases; current count of crystalline
+phases.}
+\reuse{intro/phase.png, conclude/tip4p.png.}
+\todo{verify phase count and add Ice XIX and later reports.}
+
+\section{Structural signatures relevant to local order}
+\plan{Master table, one row per phase: space group, molecules per cell,
+density, proton order, first-shell coordination, second-shell
+interpenetration, ring statistics, stability window, water-model caveats.
+Argue which features a LOP can and cannot see (e.g.\ proton-order partners
+share oxygen sublattices).}
+\code{docs/validation/genice\_summary.csv for density and CN columns.}
+
+\section{Amorphous ices, clathrates and liquid water}
+\plan{LDA/HDA/VHDA, sI/sII/sH frameworks, liquid structure and the
+two-state picture; why these are the hardest cases for LOPs.}
+\reuse{icephases/icephases.tex section "Clathrates, LDA and HDA".}
+
+%=====================================================================
+\chapter{A taxonomy of local order parameters}\label{ch:taxonomy}
+%=====================================================================
+\plan{Every parameter gets: definition, neighbor convention, range and limits,
+the phases it was designed for, known pitfalls. Keep equations; cut
+narrative. End with a summary table (Table~\ref{tab:taxonomy}).}
+\reuse{background/background.tex, reorganized into the groups below.}
+
+\section{Common conventions}
+\plan{Neighbor definitions (cutoff, $N$ nearest, Voronoi, H-bond graph);
+oxygen-only vs.\ molecular parameters; local averaging (Lechner--Dellago
+style); periodic boundaries; smooth vs.\ discontinuous forms and why it
+matters for collective variables.}
+\code{neighbors.py; averaged=True options.}
+
+\section{Radial and density-based parameters}
+\plan{Density, cutoff and smooth coordination number, $d_5$, LSI, Voronoi
+density and asphericity, pair-entropy fingerprint and its local average.}
+\code{density, coordination\_number, smooth\_coordination, d5,
+local\_structure\_index, voronoi\_density, voronoi\_asphericity,
+eFingerprint.}
+
+\section{Angular and tetrahedral parameters}
+\plan{Orientational and translational tetrahedral order, water--water angular
+distribution, bond-angle, angle-histogram and angular Fourier parameters,
+local-neighborhood A1--A3.}
+\code{tetrahedral\_order, translational\_order, water\_angular\_distribution,
+bond\_angle\_parameter, angle\_histogram\_parameter, angular\_fourier,
+neighborhood\_parameters.}
+
+\section{Hydrogen-bond and topology-based parameters}
+\plan{H-bond counts, $F_4$ (including the hydrogen-selection pitfall found
+during validation), Russo--Tanaka $\zeta$, smallest-ring statistics of the
+H-bond network (note that periodic wrap-around paths must be rejected in
+small cells), graph descriptors.}
+\code{hydrogen\_bonds, F4, zeta, ring\_statistics, graph\_descriptor.}
+
+\section{Bond-orientational order}
+\plan{Steinhardt $q_l$, $w_l$, normalized $\hat w_l$, averaged variants,
+crystalline connections, CHILL and CHILL+.}
+\code{steinhardt, crystalline\_connections, chill, chill\_plus.}
+
+\section{Template and symmetry-based parameters}
+\plan{Polyhedral template matching, centrosymmetry, neighbor-distance
+parameter $D$.}
+\code{template\_matching, centrosymmetry, neighbor\_distance\_parameter.}
+
+\section{Molecular and electrostatic parameters}
+\plan{Quadrupole-related $Q_T$; when orientational information beyond
+oxygen positions is necessary.}
+\code{quadrupole\_parameter.}
+
+\section{Summary table}
+Table~\ref{tab:taxonomy} lists every parameter in the benchmark with the
+settings used there (benchmarks/registry.py). "Smooth form" marks a
+parameter defined through a switching function or Gaussian broadening rather
+than hard counts. This does not make the implemented quantity a valid
+collective variable: both marked parameters are truncated at the 5~\AA{}
+search cutoff (where the switching function is small but nonzero) and use
+hard neighbor membership, and their gradients have not been tested.
+\todo{Assess CV suitability separately: continuity at neighbor exchanges,
+cutoff handling, gradients.}
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Local order parameters in the benchmark, with the settings used
+there. All O--O first-shell cutoffs are 3.5~\AA. \todo{add cost column after
+the scaling runs.} \textcolor{red}{?}: reference to add.}
+\label{tab:taxonomy}
+\begin{tabular}{>{\raggedright\arraybackslash}p{.23\linewidth}>{\raggedright\arraybackslash}p{.12\linewidth}>{\raggedright\arraybackslash}p{.3\linewidth}cc>{\raggedright\arraybackslash}p{.08\linewidth}}
+\toprule
+Parameter & Group & Neighbors & H & \begin{tabular}[b]{@{}c@{}}Smooth\\form\end{tabular} & Ref. \\
+\midrule
+CN & radial & O within 3.5~\AA & & & -- \\
+Smooth CN & radial & switching function, $r_0=3.5$~\AA & & \checkmark & -- \\
+$d_5$ & radial & fifth-nearest O & & & \cite{Cuthbertson2011} \\
+LSI & radial & O within 3.7~\AA{} and next & & & \cite{Shiratani1996} \\
+Voronoi density, asphericity & radial & periodic Voronoi cell & & & -- \\
+Entropy $s$, $\bar s$ & radial & $g(r)$ to 5~\AA; average to 5~\AA & & \checkmark & \cite{Piaggi2017} \\
+$Q$, $\bar Q$ & angular & 4 nearest O; average 3.5~\AA & & & \cite{Errington2001} \\
+$S_k$ & angular & 4 nearest O & & & \cite{CHAU_1998} \\
+Bond angle $B$ & angular & O within 3.5~\AA & & & \textcolor{red}{?} \\
+Angular Fourier ($a=3$) & angular & O within 3.5~\AA & & & \textcolor{red}{?} \\
+Angle histogram $H_1$--$H_3$ & angular & O within 3.5~\AA & & & \textcolor{red}{?} \\
+$A_1$--$A_3$ & angular & O within 3.5~\AA & & & \textcolor{red}{?} \\
+$F_4$ & H-bond & O within 3.5~\AA, outer H & \checkmark & & \cite{Rodger1996} \\
+$N_\mathrm{HB}$ & H-bond & 3.5~\AA, 30$^\circ$ & \checkmark & & \cite{Luzar1996} \\
+$\zeta$ & H-bond & H-bond partners; O to 5~\AA & \checkmark & & \textcolor{red}{?} \\
+Ring fractions (4--8) & H-bond & H-bond network, rings $\le 10$ & \checkmark & & \textcolor{red}{?} \\
+$q_3$, $q_4$, $q_6$ & bond-orient. & O within 3.5~\AA & & & \textcolor{red}{?} \\
+$\bar q_3$, $\bar q_4$, $\bar q_6$ & bond-orient. & averaged over 3.5~\AA & & & \cite{Lechner2008} \\
+$\hat w_4$, $\hat w_6$ & bond-orient. & O within 3.5~\AA & & & \textcolor{red}{?} \\
+Crystalline connections & bond-orient. & $q_6$ dot product $>0.5$ & & & \cite{tenWolde1996} \\
+CSP & template & 12 nearest O & & & \cite{Kelchner1998} \\
+Neighbor distance $D$ & template & O within 3.5~\AA & & & -- \\
+CHILL / CHILL+ & labeler & 4 nearest / 3.5~\AA, $q_3$ & & & \cite{Moore2010,Nguyen2014} \\
+PTM & labeler & diamond templates & & & \cite{Larsen2016} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%=====================================================================
+\chapter{Descriptors and machine-learned approaches}\label{ch:ml}
+%=====================================================================
+\plan{Critical, not promotional: what each method needs (training data,
+labels, model), what it reports, and how it was validated.}
+
+\section{High-dimensional descriptors}
+\plan{Descriptor requirements (invariance, uniqueness, continuity,
+conciseness, cost); SOAP, ACSF, MBTR/LMBTR, Coulomb/sine/Ewald matrices.}
+\reuse{background/background.tex sections "Descriptor" and "SOAP".}
+\code{soap, atomic\_descriptor.}
+
+\section{Supervised classifiers}
+\plan{DeepIce, GCIceNet, PointNet-style and equivariant networks. Report
+accuracies with the dataset they refer to.}
+\reuse{background/background.tex sections "DeepIce" and "GCIceNet".}
+
+\section{Unsupervised and dimensionality-reduction approaches}
+\plan{PCA, clustering, autoencoders on SOAP; mention the author's SOAP
+autoencoder only as a pointer to separate work.}
+\reuse{conclude/conclude.tex, condensed to one paragraph and one figure at
+most.}
+
+\section{Data-driven collective variables}
+\plan{Deep-LDA, Deep-TICA, OPES/metadynamics with learned CVs for ice
+nucleation.}
+\todo{literature.}
+
+%=====================================================================
+\chapter{A unified benchmark}\label{ch:benchmark}
+%=====================================================================
+All parameters in Table~\ref{tab:taxonomy} were computed with one
+implementation (SolOrder), one set of settings fixed before any comparison,
+and one analysis pipeline. Differences between parameters therefore reflect
+the parameters themselves rather than codes, cutoffs or water models. The
+design, code and results are in the benchmarks/ directory of the SolOrder
+repository.
+
+\section{Datasets}\label{sec:datasets}
+\paragraph{Ideal crystals.} Eighteen phases were generated with
+GenIce2~\todo{cite}: Ih, Ic, II, III, IV, V, VI, VII, VIII, IX, XI, XII,
+XIII, XIV and XVII, and the empty sI, sII and sH clathrate frameworks. Each
+proton-disordered phase was generated from five random seeds, giving 89,100
+molecular environments in total. Ice XVI was excluded because GenIce gives it
+the same oxygen positions as the empty sII framework. Every atom was
+displaced by Gaussian noise of 0.02~\AA, about twice the coordinate precision
+of the files, so that two phases count as separable only at a stated
+resolution rather than through rounding differences. Five pairs relate
+proton-ordered and proton-disordered forms of one oxygen framework: Ih/XI,
+III/IX, V/XIII, VII/VIII and XII/XIV.
+
+\paragraph{Thermal and quenched TIP4P/Ice.} Bulk Ih, Ic and
+stacking-disordered ice, and spherical Ih, Ic and stacking-disordered seeds of
+50, 100 and 200 molecules embedded in liquid, were simulated at 220~K
+(TIP4P/Ice~\todo{cite}, NVT). Each of the twelve systems contributes ten
+thermal frames and the same frames after energy minimization, 834,040
+molecular environments in all. Every molecule carries a ground-truth label
+from the construction: seed membership, interior position, and hexagonal or
+cubic stacking of its layer. The liquid reference consists of molecules more
+than 8~\AA{} beyond the seed radius. Seed oxygens were restrained during
+minimization and a 20~ps equilibration; the ten frames are 1~ps apart and
+follow release, so the seeds have little time to change. We call this run~A.
+
+\paragraph{Replica runs.} Separate NVT runs of bulk Ih, Ic and
+stacking-disordered ice and of bulk liquid (4096 molecules) at 220~K, and of
+bulk Ih and Ic at 250~K, provide held-out data (run~B). They start from the
+same structures as run~A, so they share its proton configurations, and each
+contributes 60 thermal frames 5~ps apart and the same frames after energy
+minimization: 1,643,520 molecular environments.
+
+\paragraph{Independent preparations.} Five further preparations per
+condition (runs C1--C5) start from new structures. Ih and Ic keep the oxygen
+lattice but get new proton configurations, generated by ice-rule loop moves
+from an Euler-circuit orientation while keeping the net dipole below 2\% of
+full polarization. (The run A/B crystals carry a net dipole of about 18\%.)
+Each stacking-disordered preparation also gets a new random stacking sequence
+with 5--7 of 12 layers hexagonal. Each liquid preparation is melted at 300~K
+for 50~ps with new velocities and re-equilibrated at 220~K for 1~ns. The
+protocol is otherwise that of run~B: Ih and Ic at 220 and 250~K,
+stacking-disordered ice and liquid at 220~K, 60 thermal and 60 quenched
+frames 5~ps apart, 8,217,600 molecular environments. Oxygens in the crystals
+stay at a mean 0.35--0.41~\AA{} from their minimized sites. In the liquids,
+the fraction labeled ice or interfacial ice by CHILL+ stays near 10\% without
+a trend. Molecules move only ${\sim}3$~\AA{} per nanosecond, and two liquid
+runs drift down in energy by 0.05--0.09~kJ\,mol$^{-1}$ per molecule over
+300~ps, so the supercooled liquid is still aging slowly.
+
+\paragraph{Second water model.} TIP4P/2005~\todo{cite} was run on the
+C1--C3 structures: Ih, Ic, stacking-disordered ice and liquid at 220~K (the
+same temperature) and Ih, Ic and liquid at 200~K (about the same
+undercooling, since the models melt near 252 and 272~K). A TIP4P/Ice control
+uses the same protocol, so that moving a threshold from run~C to the control
+measures the protocol effect alone and moving it from the control to
+TIP4P/2005 measures the model effect alone (run~D). Each system is first
+equilibrated at 1~bar (Monte Carlo barostat, anisotropic for crystals;
+200~ps for crystals, 1~ns for liquids at 220~K and 2~ns at 200~K) and then
+run at constant volume in the final box with the frame schedule of run~C:
+9,953,280 molecular environments. Ih densities are 0.925 (TIP4P/2005) and
+0.912~g\,cm$^{-3}$ (TIP4P/Ice) at 220~K; Ic comes out 0.35\% denser than Ih
+in both models. The oxygen-only mW model~\todo{cite Molinero2009}, a
+Stillinger--Weber potential, was run on the C1--C3 oxygen positions and the
+seed-test liquid at 220~K with the same protocol and a 5~fs step (3,548,160
+molecular environments, run~D as well). Because mW melts at 274.6~K, 220~K is
+also close to the TIP4P/Ice undercooling. Parameters that need hydrogen
+positions are undefined for mW. The mW crystals stay intact (oxygens
+0.43--0.46~\AA{} from their first-frame positions once the drift of the whole
+box is removed), Ih has a density of 0.979~g\,cm$^{-3}$, the liquid
+0.994~g\,cm$^{-3}$, and CHILL+ labels about 5\% of liquid molecules as ice or
+interfacial ice, without a trend.
+
+\paragraph{High-pressure phases.} Ices II and III at 0.3~GPa, V at 0.5~GPa,
+VI at 1.0~GPa, and VII and VIII at 3.0~GPa were generated with GenIce2 (seeds
+1 and 2, every periodic height at least 24~\AA, 768--1500 molecules) and
+liquid at 0.3 and 1.0~GPa from the 4096-molecule liquid (melted at 300~K),
+all with TIP4P/Ice at 220~K (run~E). Crystals were equilibrated for 200~ps at
+pressure, with a flexible barostat for the triclinic II and V cells, and
+then sampled as above: 3,466,560 environments, two preparations per phase.
+All phases were retained: oxygens move 0.25--0.45~\AA{} over the 300~ps of
+production, and the mean cosine between each molecule's dipole direction at
+the first and last frame stays at 0.96, including the proton-ordered II and
+VIII. Densities are 1.18 (II), 1.15 (III), 1.26 (V), 1.35 (VI), 1.56 (VII)
+and 1.57~g\,cm$^{-3}$ (VIII). Ice VII is metastable relative to VIII at
+220~K; it stays disordered only because rigid-water simulations do not order
+protons on this time scale. The ambient phases for this comparison are Ih,
+Ic and liquid from C1 and C2.
+
+\todo{Amorphous ices; further state points; an oxygen-only model (mW).}
+\code{benchmarks/compute.py, benchmarks/md\_replicas.py,}
+\code{benchmarks/md\_conditions.py, scripts/generate\_genice\_fixtures.py.}
+
+\section{Separability metric}
+For a scalar parameter and two populations $A$ and $B$ we use the
+two-sample Kolmogorov--Smirnov statistic
+\begin{equation}
+  D_{AB} = \sup_x \left| F_A(x) - F_B(x) \right| ,
+\end{equation}
+where $F_A$ and $F_B$ are the empirical cumulative distributions of the
+parameter over the molecules of each population. $D$ needs no binning, which
+matters for the near-delta distributions of ideal crystals. $(1+D)/2$ is
+the balanced accuracy of the best single threshold chosen on the same data.
+We report it as an \emph{oracle score}, between 0.5 (no separation) and 1
+(perfect separation). Because the threshold is optimized on the evaluated
+molecules, it is not a predictive accuracy; Sec.~\ref{sec:heldout} measures
+how much is lost when the threshold is fitted on one run and applied to
+another.
+Molecules within one frame are correlated, so 95\% confidence intervals come
+from a bootstrap over frames rather than over molecules. Labelers (CHILL,
+CHILL+, PTM) are scored instead against the ground-truth labels.
+
+\section{Phase-by-phase separability}
+\paragraph{Ideal crystals.} Of the 153 phase pairs, 150 are separated at a
+oracle score of at least 0.95 by at least one parameter
+(Fig.~\ref{fig:sep-ideal}). Three are not: Ih/XI (best 0.87, smooth CN),
+V/XIII (best 0.83, $\bar q_4$) and sI/sII (best 0.92). The first two are
+proton order/disorder partners whose oxygen frameworks barely differ. No
+parameter that uses hydrogen positions ($F_4$, $\zeta$, $N_\mathrm{HB}$, ring
+fractions) separates them either. The other partner pairs are separated only
+because the ordered cells are slightly distorted: III/IX by $\bar s$ alone,
+VII/VIII by 17 parameters and XII/XIV by five. \todo{Check whether the GenIce
+cell distortions match experimental lattice parameters before interpreting
+these.} The most broadly useful parameters are $\bar s$ (93\% of pairs at
+$\ge 0.95$), Voronoi asphericity (90\%), Voronoi density and $\bar Q$ (89\%).
+$N_\mathrm{HB}$ separates no pair, because every molecule in every ideal
+crystal has four hydrogen bonds; $A_3$ separates none either.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.8\linewidth]{../benchmarks/results/figures/F1a_separability_ideal.pdf}
+\caption{Number of parameters (of 39) that separate each pair of ideal
+crystals with an oracle score of at least 0.95. The full parameter $\times$
+pair matrix is in the Supplementary Information
+(S1\_separability\_ideal\_all\_pairs).}
+\label{fig:sep-ideal}
+\end{figure}
+
+\paragraph{Thermal and quenched structures.} At 220~K the picture changes
+(Fig.~\ref{fig:sep-thermal}). For ice versus liquid, the best parameters are
+locally averaged: $\bar s$ (1.00), $\bar q_6$ (0.99) and $\bar Q$ (0.98),
+compared with 0.85, 0.78 and 0.84 for their unaveraged forms. The 6-ring
+fraction (0.99) is the best unaveraged parameter. The cutoff coordination
+number (0.62) and $N_\mathrm{HB}$ (0.53) are nearly useless. Energy
+minimization restores most of the separation removed by thermal motion:
+$d_5$, LSI and $\zeta$ rise from 0.83--0.84 to 1.00.
+
+Ih and Ic are separated at 220~K only by $\bar q_3$ (1.00), $\bar q_4$
+(1.00), $F_4$ (0.94), crystalline connections (0.93), $\bar q_6$ (0.78) and
+CSP (0.72). Every other parameter is at 0.61 or below. Ring statistics cannot
+distinguish them, since both contain only 6-rings. $\bar s$ separates Ih from
+Ic perfectly in ideal crystals but only at 0.61 at 220~K.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.95\linewidth]{../benchmarks/results/figures/F1b_separability_thermal.pdf}
+\caption{Oracle score $(1+D)/2$ for ice versus liquid, Ih
+versus Ic, and hexagonal versus cubic layers in stacking-disordered ice,
+TIP4P/Ice at 220~K. Left: thermal frames; right: the same frames after
+energy minimization.}
+\label{fig:sep-thermal}
+\end{figure}
+
+\paragraph{Held-out thresholds.}\label{sec:heldout} A threshold and its
+direction fitted on run~A and applied to run~B lose at most 0.008 in balanced
+accuracy relative to the oracle score on run~B, for every parameter and every
+population pair, thermal or quenched (Fig.~\ref{fig:heldout}a). Fitting on
+run~B and testing on run~A loses at most 0.011, and fitting on the first half
+of run~B and testing on the second half at most 0.005. With $10^4$--$10^5$
+molecules per population, a single fitted threshold barely overfits, and the
+best parameter for each task is the same under both scores. Missing values
+count as errors in the held-out scores; no parameter has any in these data.
+
+What matters more is which populations are compared. Between runs, oracle
+scores for Ih versus Ic agree within 0.013. With the bulk liquid of run~B
+instead of the far liquid of run~A, 25 of 156 ice/liquid scores change by
+more than 0.01, all of them distance- or density-based parameters (CN, smooth
+CN, $d_5$, Voronoi, bond angle, $A_1$, $A_2$, CSP, neighbor distance), by up
+to 0.05. At 250~K, Ih and Ic are still separated by $\bar q_3$ (1.00),
+$\bar q_4$ (0.99), $F_4$ (0.91) and crystalline connections (0.88);
+thresholds fitted at 220~K lose at most 0.03, for $\bar s$, which is weak
+for this pair anyway (Fig.~\ref{fig:heldout}b).
+
+Frame-to-frame correlation of per-frame means at 5~ps spacing is small in the
+bulk crystals (median lag-1 autocorrelation $|r|<0.2$) but reaches 0.55 for
+ring fractions in the liquid, so the intervals use blocks of five frames
+(25~ps). Those intervals are narrow (median width 0.002) because they
+describe one run. The between-run differences above are the better measure
+of uncertainty.
+
+\paragraph{Independent preparations.} Across the five preparations, oracle
+scores vary little: the median standard deviation is 0.001, at most 0.008 for
+thermal frames outside stacking-disordered ice and 0.016 within it
+(Fig.~\ref{fig:grouped}). For every task whose mean oracle score is at least
+0.8, leaving one preparation out costs at most 0.001, and thresholds fitted
+on the seed test (run~A) cost at most 0.003 on any preparation. The best
+parameters and their scores are unchanged: $\bar s$ 0.999 and $\bar q_6$
+0.992 for Ih versus liquid; $\bar q_3$ 1.000, $\bar q_4$ 0.997, $F_4$ 0.938
+and crystalline connections 0.924 for Ih versus Ic.
+
+The exceptions are weak separations. Scores below 0.65 can fail to transfer:
+in quenched stacking-disordered ice, smooth CN separates hexagonal from cubic
+layers at 0.60 in one preparation but 0.51--0.52 in the other four, and a
+threshold fitted on four preparations scores 0.45 on the fifth. The stacking
+sequence, not the parameter, produced that separation. Hydrogen-aware
+parameters score within 0.009 of each other in the polarized run~A crystals
+and the unpolarized preparations, so the net dipole of the original crystals
+does not affect them.
+
+\paragraph{Second water model.}\label{sec:model} Thermal frames transfer
+between models (Fig.~\ref{fig:model}). From TIP4P/Ice to TIP4P/2005, oracle
+scores change by a median 0.004 (at most 0.025), at the same temperature or
+the same undercooling, and wherever the oracle score is at least 0.8 a
+threshold fitted on TIP4P/Ice loses at most 0.033 on the worst TIP4P/2005
+preparation; only smooth CN loses more than 0.02. Changing the protocol from
+the constructed constant-volume box to NPT costs at most 0.012. Quenched
+frames are the exception. Their distributions are so narrow that the best
+threshold sits at a model-specific value, and a small shift moves the whole
+population across it: smooth CN and Voronoi density keep oracle scores of
+0.97 and 0.82 for ice versus liquid in either model, but thresholds moved
+from TIP4P/Ice score 0.47--0.65 on TIP4P/2005; MALIO $A_1$ and $A_2$ drop to
+0.89--0.97. The same narrowness turns small density differences into
+spurious structure: under NPT, Ic is 0.35\% denser than Ih, and that alone
+gives Voronoi density and neighbor-distance ($D$) oracle scores of 0.74--0.90 for quenched Ih
+versus Ic, compared with 0.52--0.55 in the fixed run~C box. Rankings and the
+best parameters ($\bar s$, $\bar q_6$, $\bar q_3$, $F_4$) do not change.
+
+The oxygen-only mW model is a harder test (Fig.~\ref{fig:model}d). The
+leading parameters still transfer within 0.01: for ice versus liquid,
+$\bar s$ (1.000), $\bar q_6$ (0.998), $\bar Q$ (0.991) and $\bar q_3$ (0.987);
+for Ih versus Ic, $\bar q_3$ and $\bar q_4$ ($\ge 0.998$). But here
+first-shell distance parameters fail to transfer even in thermal frames,
+because the mW liquid packs more neighbors into the first shell (median
+smooth CN 4.76 against 4.39 for TIP4P/Ice). Smooth CN separates ice from mW
+liquid with an oracle score of 0.90 but scores 0.67 with the TIP4P/Ice
+threshold; $A_1$ drops from 0.80 to 0.72, $d_5$ and LSI lose about 0.04, and
+$\bar q_6$ for Ih versus Ic drops from 0.87 to 0.81. Several distance-based
+parameters separate ice from liquid better in mW (CN 0.63 to 0.79, $D$ 0.59
+to 0.80, $d_5$ 0.87 to 0.92), and Voronoi density worse (0.68 to 0.58). In
+quenched frames, smooth CN, Voronoi density and asphericity, entropy and $D$
+separate mW Ih from Ic almost perfectly ($\ge 0.998$, against 0.57--0.95 for
+TIP4P/Ice). Without proton disorder the quenched crystals are nearly perfect
+lattices, and the 0.4\% density difference between Ih and Ic in NPT is
+enough to separate them; that is not a stacking signal.
+
+\paragraph{High-pressure phases.}\label{sec:pressure} Every pair of the eight
+crystals is still separated by some single parameter at 220~K
+(Fig.~\ref{fig:pressure}a): the best held-out score, taking the worse of the
+two preparations, is at least 0.98 for every pair except VII/VIII, where
+$\bar q_6$ reaches 0.92 (1.00 for quenched frames, through the angle
+histogram). Individual parameters suffer much more than this best case
+(Fig.~\ref{fig:pressure}b). Of the 684 crystal pair and parameter
+combinations with an ideal oracle score of at least 0.95, 31\% fall below
+0.95 and 10\% below 0.8 in thermal frames; quenching restores all but 3.5\%.
+Losses are largest for $\hat w_4$ and $\hat w_6$ (median 0.23--0.26), neighbor distance $D$
+(0.14), and unaveraged $q_6$, $F_4$ and entropy (0.06--0.08), and near zero
+for the averaged and network parameters. Averaged entropy separates
+crystal pairs best on average (mean held-out 0.96), followed by smooth CN,
+Voronoi asphericity and $\bar Q$ (0.94).
+
+The hard tasks are high-pressure ice against compressed liquid. Ice~V
+against liquid at 0.3~GPa reaches only 0.85 with the best parameter
+(Voronoi asphericity), III against ambient liquid 0.94, II against liquid at
+0.3~GPa 0.97, and liquids at different pressures 0.85--0.99. No parameter
+separates every high-pressure ice from every liquid: the best worst case is
+$\bar Q$ at 0.65. Ice-versus-liquid recommendations from ambient pressure do
+not carry over. Thresholds also become fragile in quenched frames here: 62
+quenched pair and parameter scores at or above 0.8 lose more than 0.02
+between the two preparations (one in thermal frames), mostly for ices II and
+VIII with $d_5$, $\bar s$, smooth CN, $\zeta$ and Voronoi density. Quenched
+ordered crystals have nearly delta-shaped distributions ($d_5$ standard
+deviation 0.0002--0.003~\AA), and the two preparations differ by their final
+box (0.4\% in density for ice II), which moves the peaks by more than their
+width.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.95\linewidth]{../benchmarks/results/figures/S3_grouped.pdf}
+\caption{Five independent preparations (C1--C5). Each point is one parameter
+and population pair, thermal and quenched; vertical axis: lowest held-out
+balanced accuracy over the five preparations. (a) Threshold fitted on the
+other four preparations. (b) Threshold fitted on the seed test (run~A); for
+Ih versus Ic at 250~K, on the 220~K preparations.}
+\label{fig:grouped}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../benchmarks/results/figures/S4_model.pdf}
+\caption{Moving thresholds between protocols and water models (run~D). Each
+point is one parameter and population pair, thermal and quenched; horizontal
+axis: oracle score on the target condition; vertical axis: held-out score of
+the threshold fitted on the source condition, preparations pooled. (a)
+TIP4P/Ice, constructed constant-volume box (run~C) to the NPT protocol. (b,c)
+TIP4P/Ice to TIP4P/2005 at 220~K and at 200~K. (d) TIP4P/Ice to mW at
+220~K; hydrogen-dependent parameters are absent. The outliers far below the
+diagonal are distance- and density-based parameters, in quenched frames for
+TIP4P/2005 and also in thermal frames for mW.}
+\label{fig:model}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../benchmarks/results/figures/F8_pressure.pdf}
+\caption{Thermal high-pressure phases, TIP4P/Ice at 220~K (run~E). (a) Best
+single parameter per pair, scored by the worse of the two held-out
+directions between preparations; liquids at 0, 0.3 and 1.0~GPa. (b) Every
+parameter and crystal pair: oracle score of the ideal, jittered GenIce
+structures against the thermal oracle score.}
+\label{fig:pressure}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.95\linewidth]{../benchmarks/results/figures/S2_heldout.pdf}
+\caption{Held-out against oracle scores, one point per parameter and
+population pair (thermal and quenched). (a) Threshold fitted on run~A,
+balanced accuracy on run~B, at 220~K. (b) Ih versus Ic in run~B: threshold
+fitted at 220~K, balanced accuracy at 250~K. Points on the diagonal lose
+nothing.}
+\label{fig:heldout}
+\end{figure}
+
+\paragraph{Redundancy.} Many parameters carry nearly the same information.
+Grouping parameters whose Spearman rank correlation exceeds 0.8 in absolute
+value reduces the 39 columns to 22 groups (Fig.~\ref{fig:redundancy}). The
+largest group joins $Q$, the bond angle, the angular Fourier term, the
+three angle-histogram amplitudes, $q_3$, $q_6$ and $\hat w_4$. Other groups
+join $\bar q_3$, $\bar q_4$, $\bar q_6$ and crystalline connections; $d_5$,
+LSI, $s$ and $\zeta$; $\bar Q$ and $\bar s$; and the 5- and 6-ring
+fractions.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.95\linewidth]{../benchmarks/results/figures/F2_redundancy.pdf}
+\caption{Hierarchical clustering of parameters by $1-|\rho|$, with $\rho$ the
+Spearman correlation over thermal Ih, Ic and liquid molecules at 220~K. The
+dashed line marks $|\rho| = 0.8$.}
+\label{fig:redundancy}
+\end{figure}
+
+\section{Ice labelers against ground truth}
+CHILL+ labels 99.7\% of thermal bulk Ih correctly, while the original CHILL
+labels only 70.7\%. The eclipsed-bond window is the reason. In thermal bulk
+Ih, every four-coordinated molecule keeps its three staggered bonds, but the
+correlation of its eclipsed bond falls inside CHILL's window $(-0.2,-0.05)$
+for only 70.8\% of molecules (5th--95th percentile $-0.23$ to $0.01$),
+against 100\% for CHILL+'s $(-0.35, 0.25)$~\cite{Nguyen2014}. After energy
+minimization both windows contain every eclipsed bond. PTM with the default
+RMSD cutoff labels 97\% of bulk ice correctly and never labels liquid as ice.
+False-positive rates in the far liquid are at most 1\% for all three
+labelers.
+
+In the seeds, all three recover only part of the constructed crystal
+(Fig.~\ref{fig:labels}): CHILL+ finds 11\% of interior molecules of a
+50-molecule Ih seed with the correct polytype, and 58\% for a 200-molecule
+seed. Construction labels describe the starting structure, so we audited each
+frame before reading these numbers as errors. A seed molecule counts as
+intact when it lies within 1~\AA{} of its constructed site (after removing
+the seed's drift) and keeps all its constructed bonds shorter than
+3.5~\AA. In the 100- and 200-molecule seeds 81--90\% of seed molecules are
+intact (94--99\% of interior ones). The 50-molecule Ih seed is the most
+deformed: 57\% intact, 75\% of its interior.
+
+Recall depends on depth below the constructed seed surface, and hardly on
+seed size or polytype (Fig.~\ref{fig:depth}). CHILL+ finds the correct
+polytype for at most 15\% of molecules within 3~\AA{} of the surface, about
+70\% at 4--5~\AA{} and over 90\% beyond 6~\AA, although about 90\% of
+molecules are intact already at 2--4~\AA{} depth. Between 1 and 4~\AA{} it
+puts 17--58\% of molecules in its separate interfacial-ice class instead. A
+50-molecule seed ($R \approx 7.3$~\AA) has only 3--4\% of its molecules deeper
+than 5~\AA, which explains most of its low score; for the Ih seed, real
+deformation adds to it. PTM needs about 2~\AA{} more depth. Its best
+diamond-template RMSD falls below the default cutoff of 0.1 for half of the
+molecules only at 6--7~\AA{} depth (median 0.07--0.09 deep inside a seed,
+0.12--0.14 at 4--5~\AA). CHILL is below CHILL+ for Ih and stacking-disordered
+seeds at most depths, as in bulk Ih; for Ic seeds it is level or slightly
+ahead. Small-seed recall therefore measures how much crystalline support
+each labeler needs around a molecule, not only whether it recognizes ice.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.95\linewidth]{../benchmarks/results/figures/F7_seed_labels.pdf}
+\caption{Fraction of interior seed molecules labeled with the correct
+polytype by CHILL, CHILL+ and PTM, for Ih, Ic and stacking-disordered (Isd)
+seeds of $N$ molecules in TIP4P/Ice liquid at 220~K. Error bars: 95\%
+bootstrap intervals over frames.}
+\label{fig:labels}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.95\linewidth]{../benchmarks/results/figures/F7b_seed_depth.pdf}
+\caption{Fraction of seed molecules labeled with the correct polytype against
+depth below the constructed seed surface, $R - r$, pooled over seed sizes,
+thermal frames at 220~K. Dashed: fraction of molecules whose constructed
+lattice is intact (within 1~\AA{} of the constructed site, all constructed
+bonds kept). Bins with fewer than 30 molecules are omitted.}
+\label{fig:depth}
+\end{figure}
+
+\todo{Caveats to state: run~A frames are 1~ps apart, so its bootstrap
+intervals are too narrow; both liquid references are supercooled;
+ideal-crystal results depend on GenIce cell geometries.}
+
+\section{Sensitivity to neighbor definition and water model}
+TIP4P/Ice versus TIP4P/2005 and mW is in Sec.~\ref{sec:model}: averaged
+and angular parameters transfer; first-shell distance and density parameters
+do not, in quenched frames between the TIP4P models and also in thermal
+frames for mW.
+\plan{Cutoff scans; $N$-nearest vs.\ cutoff.}
+
+\section{Computational cost}
+\plan{Time per molecule vs.\ system size, serial and parallel.}
+\code{n\_jobs and backend options (parallel.py).}
+
+\section{Application: following an interface or nucleation event}
+\plan{Per-molecule labels along one trajectory from CHILL+, $q_6$-based,
+PTM and a descriptor-based method; agreement and disagreement.}
+
+%=====================================================================
+\chapter{Practical guide}\label{ch:guide}
+%=====================================================================
+\plan{Decision table: question (ice vs.\ liquid, Ih vs.\ Ic, hydrate vs.\ ice,
+high-pressure polymorphs, collective variable for sampling) $\rightarrow$
+recommended parameter(s), settings and caveats.}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Provisional recommendations from the benchmark so far (ideal
+crystals; TIP4P/Ice at 220~K, Ih/Ic also at 250~K, up to seven runs, five of them
+independent preparations; TIP4P/2005 at 220 and 200~K; mW at 220~K; six
+high-pressure ices and compressed liquid at 220~K). Rankings are the same for
+oracle and held-out scores; treat any separation below ${\sim}0.65$ as
+preparation-specific, and do not move thresholds of distance- or
+density-based parameters between models or boxes.}
+\label{tab:guide}
+\begin{tabular}{p{.27\linewidth}p{.33\linewidth}p{.3\linewidth}}
+\toprule
+Question & Best so far & Avoid \\
+\midrule
+Ice vs.\ liquid, ambient & $\bar s$, $\bar q_6$, $\bar Q$; 6-ring fraction if no
+averaging is wanted & CN, $N_\mathrm{HB}$ \\
+Ih vs.\ Ic & $\bar q_3$, $\bar q_4$; $F_4$ if hydrogens are available & ring
+statistics, unaveraged parameters \\
+Per-molecule labels in seeds & CHILL+ (Ih, stacking-disordered), CHILL or
+CHILL+ (Ic); expect reliable labels only ${\gtrsim}6$~\AA{} inside a
+crystal & CHILL for Ih; PTM within ${\sim}7$~\AA{} of an interface \\
+Distinguishing crystal phases & $\bar s$, smooth CN, Voronoi asphericity,
+$\bar Q$; $\bar q_6$ or $\bar q_4$ for VII/VIII & $\hat w_4$, $\hat w_6$,
+$D$, $N_\mathrm{HB}$, $A_3$ \\
+High-pressure ice vs.\ compressed liquid & per pair (Fig.~\ref{fig:pressure});
+no single parameter above 0.65 for all & ambient-pressure choices without
+checking \\
+Proton-ordered vs.\ disordered & no local parameter tested is reliable
+(VII/VIII separate through their oxygen lattices) &
+-- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Software}
+\plan{SolOrder alongside freud, OVITO, PLUMED, pyscal and MDAnalysis:
+coverage, parallelism, differentiability, licensing.}
+
+\section{Reproducibility checklist}
+\plan{What to report when using an LOP: neighbor rule, cutoff, averaging,
+water model, thresholds and their calibration.}
+
+%=====================================================================
+\chapter{Outlook}\label{ch:outlook}
+%=====================================================================
+\plan{Open problems: proton-ordered partners, amorphous ices, interfaces and
+confinement, transferability of learned models across water models, LOPs as
+differentiable CVs.}
+
+\section*{Data and code availability}
+\plan{SolOrder version, benchmark scripts and datasets (DOI).}
+
+\section*{Acknowledgments}
+\plan{Funding, computing resources.}
+% basic/ack.tex is a thesis declaration and is not used in the review.
+
+% Previous chapter files, kept for reference while rewriting:
+% \include{intro/introduction}
+% \include{icephases/icephases}
+% \include{background/background}
+% \include{conclude/conclude}
+
+\end{document}

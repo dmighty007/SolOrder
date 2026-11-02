@@ -31,7 +31,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/dmighty007/SolOrder">
-    <img src="./images/logo22.gif" alt="Logo" width="150" height="150">
+    <img src="docs/images/logo22.gif" alt="Logo" width="150" height="150">
   </a>
 
   <h3 align="center">SolOrder</h3>
@@ -83,7 +83,19 @@
 <!--[![Product Name Screen Shot][product-screenshot]](https://example.com)-->
 
 *SolOrder* is purposed to calculate simple structural property based order parameter of water molecules in MD simulation output. This module is validated for gromacs output files.   
-Currently it can calculate *Four body structural order parameter* ( $F_4$ ), *Orientational and translational tetrahedral order parameter(OTO & TTO)*, *Local structure index(LSI)*, *Local entropy fingerprints* etc by follwing the protocols specified in the literature so far. There are a lot more order parameters related to water structure and we wish to have them under one roof. Our current interest is to include bond orientational order parameters and SOAP(Smooth Overlap of Atomic Positions) related order paramter to the *SolOrder* module. There's a lot we can actually do to incrase number of ways to accurately detect phases, of which immediates are invoking ideas of molecular graph and ML. 
+SolOrder calculates tetrahedral order, local structure index, F4, entropy
+fingerprints, density, coordination numbers, fifth-neighbor distances,
+hydrogen-bond counts, Steinhardt bond order, periodic Voronoi measures, angular
+distributions, centrosymmetry, and CHILL/CHILL+ classification. Calculations support configurable
+Numba/joblib execution. See the [parallel API and definitions](docs/order_parameters.md)
+for examples, units, neighbor conventions, and validation details. The
+[implementation-status table](docs/order_parameter_status.md) lists completed
+parameters and the remaining manuscript scope.
+[Extended parameter examples](docs/extended_parameters.md) cover the geometric
+methods and optional DScribe/PTM backends. Complex learned models are deferred.
+Validation reports cover [GenIce structures](docs/validation/genice.md) and
+[366 sampled nucleation configurations](docs/validation/nucleation/README.md).
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -96,27 +108,41 @@ Currently it can calculate *Four body structural order parameter* ( $F_4$ ), *Or
 
 ### Prerequisites
 
-This module uses few optimized modules such as MDAnalysis, pandas, numba, numpy etc. to fast-track the calculation of OPs. They are listed in `requirements.txt` file. You can install them using either pip or conda. Like below...
-* MDAnalysis
-  ```sh
-  pip install MDAnalysis
-  ```
+SolOrder uses MDAnalysis, NumPy, pandas, Numba, tqdm, and joblib. Runtime
+dependencies are declared in `pyproject.toml` and installed automatically by pip.
+The development environment uses Python 3.11. NumPy remains below version 2
+while the existing numerical implementation is validated for newer versions.
 
 ### Installation
 
-_You may not need to install the module. Just clone the repository and import them locally. To install the **SolOrder** module globally you can 
-do either of the following ways ._
+Install the published package:
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/dmighty007/SolOrder.git
-   cd SolOrder
-   python setup.py install
-   ```
-2. Or you can install directly from pypi store..
-   ```sh
-   pip install SolOrder
-   ```
+```sh
+python -m pip install SolOrder
+```
+
+For development, create a conda environment and install the package in editable mode:
+
+```sh
+git clone https://github.com/dmighty007/SolOrder.git
+cd SolOrder
+conda env create --prefix ./.conda-env --file environment.yml
+conda activate ./.conda-env
+python -m pip install -e ".[dev]"
+python -m pytest
+```
+
+Library code lives in `src/SolOrder/`. Research notebooks are in
+`examples/notebooks/`, sample files in `examples/data/`, and saved results in
+`examples/results/`. Notebooks require their original simulation inputs; update
+local input paths before running them. Install plotting and notebook tools with
+`python -m pip install -e ".[examples]"`.
+
+To build release artifacts:
+
+```sh
+python -m build
+```
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -170,7 +196,7 @@ obj.get_dihedrals()
 sns.kdeplot(obj.dihedrals, bw_method = 0.05)
 ```
     
-![png](images/output_5_3.png)
+![png](docs/images/output_5_3.png)
     
 
 
@@ -186,7 +212,7 @@ sns.kdeplot(obj.f4, bw_method = 0.05)
 ```
 
     
-![png](images/output_7_3.png)
+![png](docs/images/output_7_3.png)
     
 
 
@@ -202,7 +228,7 @@ sns.kdeplot(obj.tetra_orient,bw_method = 0.05)
 ```
 
     
-![png](images/output_9_2.png)
+![png](docs/images/output_9_2.png)
     
 
 
@@ -223,7 +249,7 @@ sns.kdeplot(obj.tetra_trans,bw_method = 0.05)
 ```
 
     
-![png](images/output_11_2.png)
+![png](docs/images/output_11_2.png)
     
 
 
@@ -243,7 +269,7 @@ obj.LSI()
 sns.kdeplot(obj.lsi,bw_method = 0.05)
 ```
     
-![png](images/output_13_2.png)
+![png](docs/images/output_13_2.png)
     
 
 ```python
@@ -251,7 +277,7 @@ obj.MinimumAngle()
 sns.kdeplot(np.cos(obj.minAngles),bw_method = 0.05)
 ```
     
-![png](images/output_14_2.png)
+![png](docs/images/output_14_2.png)
     
 
 
@@ -297,7 +323,7 @@ sns.kdeplot(entropy.le, bw_method = 0.05)
 ```
 
     
-![png](images/output_20_1.png)
+![png](docs/images/output_20_1.png)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

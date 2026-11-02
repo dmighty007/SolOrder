@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SolOrder"
+version = "1.1.0"
+description = "Structural order parameters and local entropy fingerprints for water simulations"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "Dibyendu Maity", email = "dibyendumaity1999@bose.res.in"}]
+keywords = ["water", "molecular dynamics", "order parameter"]
+dependencies = [
+    "numpy>=1.24,<2",
+    "scipy>=1.15",
+    "pandas>=1.5",
+    "tqdm>=4.64",
+    "numba>=0.57",
+    "MDAnalysis>=2.6",
+    "joblib>=1.2",
+    "freud-analysis>=3.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "build>=1", "twine>=5"]
+examples = ["jupyterlab", "matplotlib", "seaborn", "scipy"]
+descriptors = ["dscribe>=2.1", "ase>=3.22,<3.27"]
+ptm = ["ovito>=3.10"]
+validation = ["h5py>=3.8", "matplotlib>=3.5"]
+# everything benchmarks/*.py and the figures need, except the simulations
+benchmark = ["scikit-learn>=1.3", "matplotlib>=3.5", "ovito>=3.10"]
+# benchmarks/md_*.py (OpenMM with CUDA; conda-forge openmm is recommended over pip)
+simulation = ["openmm>=8.1", "networkx>=3"]
+
+[project.urls]
+Homepage = "https://github.com/dmighty007/SolOrder"
+"Bug Tracker" = "https://github.com/dmighty007/SolOrder/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

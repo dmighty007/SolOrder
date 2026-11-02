@@ -1,0 +1,70 @@
+\chapter{Future directions}\label{ch:Future_Works}
+
+The conventional order parameter offers limited efficacy in deciphering the intricate transitions within the expansive phase space of ice-water. To navigate this challenge more effectively, a judicious fusion of both linear and non-linear order parameters, which are not only readily accessible but also grounded in intuitive physics, proves to be highly advantageous. While multiple avenues exist for deriving the appropriate weights and powers of these parameters, the task becomes progressively arduous as we introduce a greater number of complex variables into our consideration.
+
+In such a context, machine learning (ML) approaches emerge as indispensable tools. Notably, Principal Component Analysis (PCA) and Random Forest Regression stand out as exemplary techniques to tackle this quandary. In the forthcoming discourse, we will delve into an innovative methodology that melds the capabilities of an autoencoder – a feed-forward deep neural network – with the concept of smooth overlap of atomic positions(SOAP). This sophisticated amalgamation offers a precision-driven mechanism for accurately ascertaining phase boundaries. \\
+\begin{figure}[H]
+\centering
+\includegraphics*[width=.85\linewidth]{conclude/tip4p.png}
+  \caption{(a)Representative snapshot of a simulation box of ideal ice, (b)TIP4P-ice phase diagram}
+\label{fig:IceIh}
+\end{figure}
+An autoencoder operates on the principle of unsupervised learning, wherein it seeks to replicate its input at the output layer. In this context, the input consists of molecular configurations representing various ice phases, while the network's hidden layers encode the crucial information underlying these configurations. The power of autoencoders lies in their ability to capture intricate and nonlinear relationships present in the data, distilling complex structural features that are often challenging to decipher through traditional analysis.\\
+
+In the pursuit of leveraging autoencoders within the molecular simulation of ice phases, we've incorporated the Smooth Overlap of Atomic Positions (SOAP) as a pivotal input feature for our autoencoder model. SOAP possesses a remarkable capability: it can meticulously define and differentiate between diverse atomic environments. This is achieved by furnishing each atomic structure with a unique vector, inherently capturing its distinctive characteristics. In our innovative approach, the autoencoder plays a pivotal role by extracting a compressed, low-dimensional code from each of these distinct SOAP vectors.\\
+
+This synergistic integration of SOAP and autoencoders extends our capacity to distill crucial information from complex atomic configurations. SOAP's nuanced representation of atomic environments dovetails seamlessly with the autoencoder's ability to encapsulate these complexities within compact codes. As a result, our approach not only streamlines the representation of molecular configurations but also accentuates the extraction of vital structural nuances that drive ice phase dynamics.\\
+
+The autoencoder's role in this collaborative framework is particularly noteworthy. By encoding these unique SOAP vectors into a lower-dimensional latent space, the autoencoder effectively distills essential structural features while minimizing redundancy. This not only facilitates efficient data storage but also enables the model to uncover latent relationships among diverse ice phase configurations.
+
+In essence, the incorporation of SOAP as a foundational input feature within our autoencoder methodology underscores a profound synthesis of physics and data-driven learning. The marriage of SOAP's structural specificity and the autoencoder's encoding prowess promises to catalyze our understanding of ice phases, opening up avenues for more accurate phase boundary determination and novel insights into the behavior of these intriguing molecular assemblies.\\
+To train our autoencoder model effectively, we embarked on simulating 5 distinct ice and water systems across a range of stable thermodynamic conditions. This deliberate approach ensured the generation of a substantial dataset for training purposes. For these simulations, we employed the TIP4P-ice force-field model within the GROMACS suite\cite{gmx1}\cite{Abraham2015}\cite{Berendsen1995}. In selecting our simulation points within the phase space, we adhered closely to the TIP4P-ice phase diagram\cite{Bore2022}.
+
+The chosen ice phases for simulation encompassed Ice-Ih, Ice-II, Ice-III, Ice-V, and Ice-VI. Each of these phases was simulated at specific conditions: 230 K and 1 bar, 3000 bar, 3000 bar, 6000 bar, and 8000 bar, respectively. Concomitantly, bulk water systems were simulated under identical conditions, allowing for insightful comparisons.
+The autoencoder model employed in our study was constructed with meticulous consideration of its architecture. It consisted of two essential blocks: the encoder and the decoder. Each of these blocks was comprised of three hidden neural network layers, with node counts of 1000, 400, and 400, respectively. This mirrored configuration in both the encoder and decoder facilitated a balanced transformation process.
+
+One of the pivotal components of our model was the bottleneck layer, a critical juncture where data is succinctly represented. With a strategically chosen dimensionality of 2 nodes, this bottleneck layer ensured that our model learned a compact yet meaningful two-dimensional representation of the SOAP data. This reduction in dimensionality not only streamlined computation but also empowered the model to capture essential structural nuances in a concise form. The number two of code dimension is decided based on the competetion of complexity and amount of information the model was able to pass through the code block.
+\begin{figure}[H]
+\centering
+\includegraphics*[width=.85\linewidth]{conclude/architect.png}
+\caption{Autoencoder architecture}
+\label{fig:IceIh}
+\end{figure}
+The activation function we adopted for our model was the Gaussian Error Linear Unit (GELU). This choice was grounded in its capacity to introduce non-linearity while maintaining smooth differentiability. GELU's characteristics harmonized seamlessly with our model's aim to uncover intricate relationships within the data. Though the choice of activation function is less sensitive than the regularizer used to scale the input data.\\
+
+The input feature spanned a dimensionality of 852, achieved through the process of flattening the power spectra denoted as $P_{nn'l}$, obtained using the Smooth Overlap of Atomic Positions (SOAP) technique. In our specific context, we used $n=8$ radial basis and $l=6$ angular basis to crate SOAP. It's worth noting that the selection of the radius cutoff for neighbor search and the Gaussian smoothness parameter($\sigma$) wields the potential to influence the learning trends of the autoencoder. Consequently, we meticulously tailored these parameters to align with our objectives.
+
+Our training process was fueled by the rich dataset generated through molecular simulations. This data was used to train our neural network, which was then employed to map ice phases onto a lower-dimensional code space. A visually compelling representation of this process is depicted in Figure 4.3, where the distinctions between various ice phases are vividly apparent. Notably, the showcased ice phases pertain to energy-minimized structures upto certain convergence.
+\begin{figure}[H]
+\centering
+\includegraphics*[width=.85\linewidth]{conclude/autoencoder_result_mini.png}
+\caption{Energy minimized ice configurations are projected into variational autoencoder space. Clear separation of phase boundaries achieved.}
+\label{fig:IceIh}
+\end{figure}
+Intriguing insights emerge when thermal fluctuations are introduced through molecular dynamics (MD) simulated trajectories. While these fluctuations cause the ice phases to disperse within the autoencoder's order parameter space, the distinct boundaries between phases remain remarkably intact. In contrast, when liquid water under varying thermodynamic conditions is projected, the boundaries appear less sharply defined. Particularly, a noticeable amount of overlap surfaces between Ice III and Ice V, particularly when juxtaposed with high-pressure liquid water.
+ 
+\begin{figure}[H]
+\centering
+\includegraphics*[width=.85\linewidth]{conclude/thermal.png}
+\caption{Effect of thermal vibration to the accuracy of prediction of different ice phases}
+\label{fig:IceIh}
+\end{figure}
+
+Our model's efficacy was subjected to rigorous testing, including its application to the growth of Ice Ih from a slab-water mixture state. The outcomes of these tests substantiate the model's competence in tracking single-particle transitions – a critical achievement in the liquid-to-ice Ih transformation process. This underscores the robustness and practical applicability of the autoencoder model within the intricate landscape of molecular phase transitions.\\
+
+\section{Conclusions}
+In conclusion, this study of various ice phases, each characterized by distinct signature structures and order parameters, has provided us with valuable insights into the complexities of molecular phase transitions in simulation. Traditional order parameters, while effective in specific cases, exhibit limitations in their generality and robustness across a wide spectrum of conditions. The reliance on case-by-case considerations often hampers their broader applicability.\\
+
+\begin{figure}[H]
+\centering
+\includegraphics*[width=.85\linewidth]{conclude/test_case.png}
+\caption{A test case: efficiency of the trained model to accurately describe the liquid to Ice-Ih transition.}
+\label{fig:IceIh}
+\end{figure}
+
+
+In this context, our work has illuminated the potential of machine learning (ML) based methodologies, particularly the ingenious application of the autoencoder model. This data-driven approach, when combined with the unique input feature of Smooth Overlap of Atomic Positions (SOAP), has demonstrated remarkable efficiency in capturing intricate relationships and patterns within the complex ice phase dynamics. The autoencoder's ability to distill essential features from high-dimensional SOAP data into a lower-dimensional code space enhances our understanding of phase boundaries and transitions in a comprehensive manner.\\
+Unlike traditional order parameters, the ML-based approach breaks free from the constraints of case specificity, showcasing adaptability to a broader range of conditions. It excels in scenarios where complex interdependencies and nuanced patterns are challenging to discern through conventional methods. The autoencoder, harnessed by SOAP, emerges as a potent tool for deciphering the rich landscape of ice phases and their transitions, transcending the limitations that often confine classical order parameters.
+Finally, our study underscores the significant advantages offered by data-driven methodologies, showcasing how the synergy between machine learning and physics can revolutionize our grasp of intricate molecular processes. As we move forward, embracing these innovative approaches paves the way for deeper, more comprehensive explorations of the complexities that underlie phase transitions, with implications extending beyond ice phases to a wide array of scientific domains.
+
+

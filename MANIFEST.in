@@ -1,0 +1,8 @@
+include README.md LICENSE environment.yml requirements.txt
+recursive-include tests *.py
+recursive-include docs *.md
+recursive-include tests/data *.gro *.json *.md
+recursive-include docs/validation *.csv
+include scripts/generate_genice_fixtures.py scripts/validate_genice.py
+include scripts/validate_nucleation.py scripts/report_nucleation.py
+include scripts/audit_nucleation.py

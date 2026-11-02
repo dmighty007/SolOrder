@@ -1,0 +1,31 @@
+.conda-env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+build/
+dist/
+.coverage
+htmlcov/
+
+.genice-env/
+
+# Benchmark per-molecule tables (regenerate with benchmarks/compute.py)
+benchmarks/cache/
+
+# LaTeX build files
+manuscript/*.aux
+manuscript/*.bbl
+manuscript/*.blg
+manuscript/*.fdb_latexmk
+manuscript/*.fls
+manuscript/*.lof
+manuscript/*.lot
+manuscript/*.nlo
+manuscript/*.out
+manuscript/*.toc
+manuscript/*.log
+
+# Archival dataset built by scripts/build_release.py
+release/

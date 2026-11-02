@@ -1,5 +1,2 @@
-numpy==1.21.5
-pandas
-tqdm
-numba
-MDAnalysis
+# Runtime dependencies are maintained in pyproject.toml.
+.

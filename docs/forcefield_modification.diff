@@ -1,0 +1,46 @@
+--- charmm36-mar2019.ff/ffnonbonded.itp	2022-07-07 11:43:56.000000000 +0530
++++ charmm36-mar2019.ff (benchmark)/ffnonbonded.itp	2026-10-13 22:54:24.710000000 +0530
+@@ -458,21 +458,14 @@
+    ZN    30    65.370000    0.000  A  0.194215920555  1.04600
+  ON2B	   8	15.999400	 0.000	A  0.315378146200  0.6363864  ; phospho residues
+    SP	 16    32.060000	0.000  A  0.391995436000  1.88280  ; S-adenosyl methionine
++; Methane hydrate
++ OWT4   16   15.99940   0.000   A    0.31668      0.88211
++ HW      1   1.00800    0.000   A    0.00000E+00  0.00000E+00
++ IW      0     0         0.000   D    0.0          0.0
++ C4     16    16.043     0.000   A    0.373        1.2259
++ C5     16    16.043     0.000   A    0.373        1.2259
++ C6     16    16.043     0.000   A    0.373        1.2259
+ ; The following atom types are NOT part of the CHARMM distribution
+-; atomtypes for additional water models
+-#ifdef HEAVY_H
+-OWT4	8	9.951400	0.0 A	3.15365e-01 6.48520e-01 ; TIP4p O
+-HWT4	1	4.032000	0.52	A	0.0 0.0 ; TIP4p H
+-MWT4	0	0.000000	-1.04	A	0.0 0.0 ; TIP 4p vsite
+-OW	8	9.951400	-0.82	A	3.16557e-01 6.50194e-01 ; SPC 0
+-HW	1	4.032000	0.41	A	0.0 0.0; SPC H
+-#else
+-OWT4	8	15.999400	0.0 A	3.15365e-01 6.48520e-01 ; TIP4p O
+-HWT4	1	1.008000	0.52	A	0.0 0.0 ; TIP4p H
+-MWT4	0	0.000000	-1.04	A	0.0 0.0 ; TIP4p vsite
+-OW	8	15.999400	-0.82	A	3.16557e-01 6.50194e-01 ; SPC O
+-HW	1	1.008000	0.41	A	0.0 0.0 ; SPC H
+-#endif
+ ; special dummy-type particles
+ MNH3	0	0.000000	0.00	A	0.0 0.0
+ MNH2	0	0.000000	0.00	A	0.0 0.0
+--- charmm36-mar2019.ff/tip4p.itp	2022-06-15 17:08:24.000000000 +0530
++++ charmm36-mar2019.ff (benchmark)/tip4p.itp	2026-10-13 22:54:24.720000000 +0530
+@@ -9,9 +9,9 @@
+ [ atoms ]
+ ; id	at type res nr	residu name at name cg nr	charge
+ 1		   OWT4		   1	   SOL		OW	   1	   0.0
+-2		   HWT4		   1	   SOL	   HW1	   1	   0.52
+-3		   HWT4		   1	   SOL	   HW2	   1	   0.52
+-4		   MWT4		   1	   SOL		MW	   1	  -1.04
++2		   HW		   1	   SOL	   HW1	   1	   0.52
++3		   HW		   1	   SOL	   HW2	   1	   0.52
++4		   MW		   1	   SOL		MW	   1	  -1.04
+ 
+ #ifndef FLEXIBLE
+ [ settles ]
