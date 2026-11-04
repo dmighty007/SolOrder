@@ -81,4 +81,4 @@ implemented option has an independent reference check, as indicated above.
 - [GenIce validation report](validation/genice.md)
 - [Nucleation trajectory validation: 366 snapshots, 44 sources](validation/nucleation/README.md)
 - [GenIce numerical results](validation/genice_summary.csv)
-- [Manuscript chapter](../manuscript/background/background.tex)
+- [Manuscript chapter](https://github.com/dmighty007/SolOrder/blob/main/manuscript/background/background.tex)

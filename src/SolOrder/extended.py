@@ -302,9 +302,11 @@ class ExtendedOrder:
         return self._voronoi
 
     def voronoi_density(self):
+        """Inverse periodic Voronoi cell volume per selected atom, Angstrom^-3."""
         return self.voronoi_geometry().density
 
     def voronoi_asphericity(self):
+        """Voronoi cell area^3/(36 pi volume^2); 1 for a sphere."""
         return self.voronoi_geometry().asphericity
 
     def chill(self, *, plus=False, cutoff=3.5):
@@ -342,6 +344,7 @@ class ExtendedOrder:
         return IceClassification(labels, staggered, eclipsed, correlations, offsets, indices)
 
     def chill_plus(self, cutoff=3.5):
+        """CHILL+ classification; shorthand for ``chill(plus=True, cutoff=cutoff)``."""
         return self.chill(plus=True, cutoff=cutoff)
 
     def _hbond_edges(self, graph, cutoff, angle):

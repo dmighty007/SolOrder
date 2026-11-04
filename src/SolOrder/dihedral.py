@@ -77,28 +77,34 @@ class OrderParameter(StructuralOrder):
         return g, source, values
 
     def get_dihedrals(self):
+        """H-O...O-H dihedrals in radians, one per unique neighbor pair; also stored in ``dihedrals``."""
         g, source, values = self._directed_dihedrals()
         self.dihedrals = values[source < g.indices]
         return self.dihedrals
 
     def F4(self, cutoff=None):
+        """Mean cos(3 phi) over the outer H-O...O-H dihedrals of each oxygen; also stored in ``f4``."""
         g, _, angles = self._directed_dihedrals(cutoff)
         self.f4 = self._run(kernels.row_mean_chunk, self.n, g.offsets, np.cos(3.*angles))
         return self.f4
 
     def OTO(self):
+        """Historical name of ``tetrahedral_order()``; also stored in ``tetra_orient``."""
         self.tetra_orient = self.tetrahedral_order()
         return self.tetra_orient
 
     def TTO(self):
+        """Historical name of ``translational_order()``; also stored in ``tetra_trans``."""
         self.tetra_trans = self.translational_order()
         return self.tetra_trans
 
     def LSI(self):
+        """Historical name of ``local_structure_index()``; also stored in ``lsi``."""
         self.lsi = self.local_structure_index()
         return self.lsi
 
     def MinimumAngle(self):
+        """Minimum H-O...O angle with each oxygen's nearest oxygen, radians; also stored in ``minAngles``."""
         g = self.neighbor_list()
         self.minAngles = self._run(kernels.minimum_angle_chunk, self.n, g.offsets,
                                   g.indices, g.vectors, g.distances, self._water_geometry())

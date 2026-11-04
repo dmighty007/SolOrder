@@ -40,10 +40,10 @@
     A module to calculate various structural order parameter related to water molecules. This project initiated with the aim to 
     distinguish between different polymorphs of ice.
     <br />
-    <a href="https://github.com/dmighty007/SolOrder"><strong>Explore the docs »</strong></a>
+    <a href="https://dmighty007.github.io/SolOrder/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/dmighty007/SolOrder">View Demo</a>
+    <a href="https://dmighty007.github.io/SolOrder/guide/first-steps/">Beginner's guide</a>
     ·
     <a href="https://github.com/dmighty007/SolOrder/issues">Report Bug</a>
     ·
@@ -152,178 +152,35 @@ python -m build
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-_For more examples, please refer to the [Documentation](https://example.com)_
 ```python
-######## Import two classes from the module...
-from SolOrder import OrderParameter as OP
-from SolOrder import eFingerprint as E
-```
-
-```python
-########## Basic modules....
-import numpy as np
 import MDAnalysis as mda
-import seaborn as sns
-import matplotlib.pyplot as plt
+from SolOrder import OrderParameter, eFingerprint
+
+u = mda.Universe("liquid.gro")                 # any format MDAnalysis reads
+op = OrderParameter(u, cutoff=5.0)              # one frame; oxygens "name OW"
+
+q = op.tetrahedral_order()                      # one value per water molecule
+q6 = op.steinhardt(6, averaged=True, cutoff=3.5)
+labels = op.chill_plus().names                  # "hexagonal_ice", "cubic_ice", ...
+s = eFingerprint(u, cutoff=5.0).localEntropy()  # local entropy fingerprint
+
+op.refresh(frame=10)                            # move to another trajectory frame
 ```
 
+The [documentation](https://dmighty007.github.io/SolOrder/) has a
+**beginner's guide** with runnable examples and small example structures
+(`docs/guide/data/`): first steps, a tour of the order parameters, classifying
+ice and finding a nucleus, choosing a parameter, and working with trajectories.
+It also has the API reference. To read it locally:
 
-```python
-########## The MDAnalysis universe object...
-u = mda.Universe("sH.gro")
-u
+```sh
+python -m pip install -e ".[docs]"
+mkdocs serve        # then open http://127.0.0.1:8000
 ```
 
-
-
-
-    <Universe with 7344 atoms>
-
-
-
-## Dihedral angle distribution and other order parameters
-
-
-```python
-######## Create the object..
-obj = OP(u)
-```
-
-
-```python
-########## Dihedral angle distribution...
-obj.get_dihedrals()
-sns.kdeplot(obj.dihedrals, bw_method = 0.05)
-```
-    
-![png](docs/images/output_5_3.png)
-    
-
-
-F4 order parameter is a mathematical function of the total number of water molecules and the torsion angle between the O-H bond of two water molecules, such that oxygen atoms of both water molecules have a distance that is less than 0.3 nm. This particular parameter can discriminate between bulk liquid water, ice, and sI crystal. It has a value of -0.4, -0.04, and 0.7 for bulk liquid water, regular ice, and sI hydrate crystals respectively.It is given as..
-
-$$F_4 = \frac{1}{N}\sum(cos3\phi)$$
- The torsion angle $\phi$ is defined as H-O...O-H, for two adjacent water molecules, where the hydrogens have been defined as the outer-most hydrogens in
-the water dimer.
-
-```python
-obj.F4()
-sns.kdeplot(obj.f4, bw_method = 0.05)
-```
-
-    
-![png](docs/images/output_7_3.png)
-    
-
-
-The below is the most common type of tetrahedral order paramater that is being used. This order parameter uses the four closest water Oxygen neighbors for the calculation. The value of q can rang from 0 to 1, where 0 is for an ideal gas and 1 is for a regular tetrahedron.
-$$q = 1− \frac{3}{8}\sum_{j=1}^3\sum_{k=j+1}^4(cos\phi_{jk}+\frac{1}{3})^2$$
-
-$q =$ Orientational tetrahedral order parameter.\
-$\phi_{jk}=$ Angle formed by the Oxygen atom under consideration & the two nearest neighbor atoms j & k.
-
-```python
-obj.OTO()
-sns.kdeplot(obj.tetra_orient,bw_method = 0.05)
-```
-
-    
-![png](docs/images/output_9_2.png)
-    
-
-
-Similar to orientational tetrahedral order. But here, the variance of the radial distance between the central water oxygen atom and the four nearest neighbors are calculated. THe value of $S_k$ is close to 1 and equals to 1 for the perfect tetrahedron. As the local tetrahedral nature increases, $S_k$ becomes more closer to 1.
-
-$$ S_k = 1−\frac{1}{3}\sum_{k=1}^4\frac{(r_k−\bar{r})^2}{4\bar{r}^2}$$
-
-$S_k$ = Translational tetrahedral order parameter
-
-$r_k$ = Radial distance from the cental Oxygen atom to the k th peripheral closest neighbor
-
-$\bar{r}$ = Arithmatic mean of the four radial distances
-
-
-```python
-obj.TTO()
-sns.kdeplot(obj.tetra_trans,bw_method = 0.05)
-```
-
-    
-![png](docs/images/output_11_2.png)
-    
-
-
-The local-structure-index (LSI) is defined for each molecule i by ordering the
-nearest neighbors j according to increasing distance to reference molecule i as $r_1 < r_2 < r_3 < ... < r_{n(i)} < 0.37 nm < r_{n(i)+1}$ where $n(i)$ is the number of molecules that are within $0.37 nm $ from molecule i (oxygen atom positions are used). The LSI distinguishes molecules with well separated first
-and second coordination shells from molecules with disordered environment, containing
-molecules in interstitial positions, through the parameter $I(i)$ defined by  
-
-$$ I(i) = \frac{1}{n(i)} \sum_{j=1}^{n(i)}[\Delta(j;i) - \bar{\Delta}(i)]^2 $$
-
-Here $\Delta(j;i) = r_{j+1}- r_j$ and $\bar{\Delta}(i)$ is the average of $\Delta(j;i)$ over all neighbors j of molecule i within the cutoff. A low LSI corresponds to a disordered local environment (HDL) while a
-high LSI indicates a highly structured, tetrahedral coordination (LDL).
-
-
-```python
-obj.LSI()
-sns.kdeplot(obj.lsi,bw_method = 0.05)
-```
-    
-![png](docs/images/output_13_2.png)
-    
-
-```python
-obj.MinimumAngle()
-sns.kdeplot(np.cos(obj.minAngles),bw_method = 0.05)
-```
-    
-![png](docs/images/output_14_2.png)
-    
-
-
-## Entropy Fingerprints
-
-Entropy is a global property, hence, to define alocal order parameter, it is projected onto each particle i as :
-
-$$ e(i) = -2 \pi \rho  k_b  \int_0^{r_m} [{g_m^i(r)}\ln(g_m^i(r)) - g_m^i(r) + 1 ] r^2 dr $$
-
-where $g_m^i(r)$ is the radial distribution function centred on particle i, which can be smoothed with Gaussians of finite width (here we choose 0.15 $\unicode{x212B}$) for obtaining a continuous and differentiable order parameter.In eqn $r_m$ represents an upper integration limit which, in a rigorous definition of entropy, should approach infinity; here $r_m$ is set to 5.0 $\unicode{x212B}$.\\
-The modifier function stores the computed pair entropy values, which are always negative, in the output particle property Entropy. Lower entropy values correspond to more ordered structural environments. The modifier function does not take into account the types of the input particles; it assumes the model is a single-component system.
-To improve the resolution between different environments,a locally averaged entropy, le, can be defined as:
-
-
-$$ le(i) = \frac{1}{(N+1)} \sum_{i=1}^N e(i) $$
-
-
-```python
-entropy = E(u)
-```
-
-
-```python
-entropy.Entropy()
-```
-
-
-      0%|          | 0/1836 [00:00<?, ?it/s]
-
-
-
-```python
-entropy.localEntropy()
-```
-
-
-      0%|          | 0/1836 [00:00<?, ?it/s]
-
-
-
-```python
-sns.kdeplot(entropy.le, bw_method = 0.05)
-```
-
-    
-![png](docs/images/output_20_1.png)
+<p align="center">
+  <img src="docs/guide/figures/distributions.png" alt="Order-parameter distributions for ice Ih, ice Ic and liquid water" width="600">
+</p>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

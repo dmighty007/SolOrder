@@ -30,44 +30,28 @@
 \maketitle
 
 \begin{abstract}
-Molecular simulations of water and ice rely on local order parameters to tell
-solid from liquid, one ice polymorph from another, and to measure nuclei and
-interfaces one molecule at a time. Dozens of such parameters exist, from
-tetrahedral order and Steinhardt invariants to CHILL+, template matching and
-machine-learned descriptors, but they are usually compared with values taken
-from different codes, cutoffs and water models. We review them in one
-taxonomy and present a reproducible benchmark that asks when they give
-reliable, transferable labels. Its central result concerns nucleus size.
-Near an ice/liquid interface every labeler misses a surface layer, and the
-number of molecules it misses per unit area, measured once on a planar
-interface (a dead layer of 3.4~\AA{} for CHILL+ and 5.0~\AA{} for PTM),
-predicts how strongly finite nuclei are undercounted. In replicated TIP4P/Ice
-seeds of 200--1600 molecules at 220~K, inverting the calibration recovers the
-constructed size from the labeled count within 5\% pooled and 10\% for any
-single seed with CHILL+ (10\% and 25\% with PTM), and from the largest labeled
-cluster within 10\% from 400 molecules on. Fresh seeds of 300 and 600
-molecules, prepared only after the calibration had been frozen, are recovered
-within 10\% by both labelers. Without it, a labeler that is
-99.7\% accurate in bulk ice still counts only half of a 400-molecule nucleus,
-and two labelers can disagree on the size of the same nucleus by a factor of
-two. The broader benchmark (22 parameter families, 39 outputs and three
-labelers computed with one open implementation; Ih, Ic, stacking-disordered
-ice and supercooled liquid with five independent preparations, extended to
-TIP4P/2005, mW, six high-pressure ices with pressure-matched liquids, and 18
-ideal structures) shows that locally averaged parameters separate ice from
-liquid and hexagonal from cubic ice almost perfectly, with thresholds that
-transfer between preparations, water models and neighbor cutoffs in the
-conditions tested, whereas distance-based parameters do not transfer and
-several popular rules form false nuclei of tens to hundreds of molecules in
-supercooled or compressed liquid. No single parameter separates every
-high-pressure ice from liquid at its own pressure, and none responds to
-proton order itself: proton order--disorder partners are separated only
-where their oxygen lattices differ, and Ih/XI and V/XIII not at all. A
-supplementary transfer test shows that the same parameters detect isolated
-confined water in unbinding paths through its missing water neighbors. We
-conclude with recommendations
-tied to the tested conditions, a reporting checklist and an archived,
-checksummed dataset.
+Local order parameters label water molecules as ice or liquid, and as one
+polymorph or another. They are usually compared with values from different
+codes, cutoffs and water models. We review them in one taxonomy and benchmark
+22 parameter families and three labelers, computed with one open
+implementation, on ice Ih, Ic, stacking-disordered ice and supercooled liquid
+from independent preparations, on TIP4P/2005 and mW, on six high-pressure
+ices and on ideal structures. The central result concerns nucleus size. Every
+labeler misses a surface layer of a nucleus. The number of molecules it
+misses per unit area, measured once on a planar ice/liquid interface (a dead
+layer of 3.4~\AA{} for CHILL+, 5.0~\AA{} for PTM), predicts the undercounting
+of finite nuclei, and inverting it recovers the constructed size of TIP4P/Ice
+seeds of 200--1600 molecules at 220~K. From the labeled count, single-seed
+errors are within 10\% for CHILL+ and 25\% for PTM. Seeds from a preparation
+built after the calibration had been frozen are recovered within 10\%.
+Uncorrected, a labeler that is 99.7\% accurate in bulk ice counts half of a
+400-molecule nucleus. Locally averaged parameters separate ice from liquid,
+and hexagonal from cubic ice, with thresholds that transfer between
+preparations, models and cutoffs in the tested conditions. Several popular
+rules form false nuclei of tens to hundreds of molecules in liquid, no single
+parameter separates every high-pressure ice from its liquid, and none detects
+proton order itself. We give recommendations tied to the tested conditions, a
+reporting checklist and an archived dataset.
 \end{abstract}
 
 \tableofcontents
@@ -140,11 +124,13 @@ independently prepared seeds that played no part in the calibration and
 confirmed on seeds prepared after it had been frozen (\cref{sec:interface}).
 Nucleus sizes from seeding and enhanced-sampling studies are known to depend
 on the order parameter that defines
-them~\cite{Espinosa2016,SanchezBurgos2022,Gispen2024}, and for hard spheres
-this dependence is captured by a constant shift of the nucleus radius fitted
-to the nucleation barrier~\cite{Filion2010}. The planar calibration measures
-such a shift independently, before any nucleus is seen, and so explains a
-spatial contribution to the dependence and offers a correction for it.
+them~\cite{Espinosa2016,SanchezBurgos2022,Gispen2024}, and the relation
+between two nucleus definitions, an excess of molecules per unit area of
+interface times the nucleus area, is established~\cite{Cheng2017}. What we
+add is operational: that excess, measured on a planar interface for
+per-molecule structural labelers of ice, its inversion to recover a nucleus
+size from labels, and a validation on seeds of known size, including seeds
+prepared after the calibration had been fixed.
 
 This review has four parts. \Cref{sec:phases} summarizes the ice landscape
 and the structural features a local parameter can and cannot see.
@@ -1172,7 +1158,9 @@ the calibration on data that played no part in any choice, we froze its code
 and values, recorded them with a pass criterion (errors within the range
 found for run F) and only then built and simulated a fourth preparation:
 Ih, Ic and stacking-disordered seeds of 300 and 600 molecules, sizes not used
-before, in a newly prepared liquid. All 24 predictions met the criterion.
+before, in a newly prepared liquid. All 24 predictions (six seeds, two
+observables, two labelers) met the criterion. They are predictions for six
+seed systems from one additional preparation, not 24 independent tests.
 From the correctly assigned count, \cref{eq:inverse} recovers the
 constructed size within 5\% for CHILL+ and 7\% for PTM. From the largest
 cluster it recovers it within 9\% and 10\%, with mean errors of $-6\%$ and $-4\%$.
@@ -1231,13 +1219,47 @@ molecules of seeds of 50, 100, 200, 400, 800 and 1600 molecules, and PTM to
 sizes they report for the same nucleus of a few hundred molecules differ by
 a factor of up to two. This is a spatial contribution to the dependence of
 nucleus sizes on the order parameter seen in seeding
-calculations~\cite{Espinosa2016,SanchezBurgos2022,Gispen2024}. Filion and
-co-workers absorbed the same dependence into a constant shift of the radius,
-fitted to umbrella-sampling barriers of hard spheres~\cite{Filion2010}, and
-variational umbrella seeding makes barriers nearly independent of the
-order parameter~\cite{Gispen2024}. The planar dead layer instead measures the
-shift directly, for each labeler and observable, without a barrier. The
-correction has been validated for correctly assigned and largest-cluster
+calculations~\cite{Espinosa2016,SanchezBurgos2022,Gispen2024}.
+
+\paragraph{Relation to earlier work.} The surface-excess argument behind the
+calibration is established. Cheng, Tribello and Ceriotti showed for
+Lennard-Jones crystals that changing the definition of a nucleus, through
+the extensive quantity that fixes its dividing surface, changes the number
+of solid atoms by a constant excess per unit area. For a curved nucleus this
+becomes that excess times the nucleus area, a term of the Tolman form that is
+an artifact of the dividing surface rather than a departure from classical
+nucleation theory~\cite{Cheng2017}. The $1/R$ term of \cref{eq:moments} is
+this relation for a per-molecule labeler, with $\Gamma$ the excess between
+the labeled and the equimolar count. Filion and co-workers absorbed the
+dependence of hard-sphere nucleus sizes on the order parameter into a
+constant shift of the radius, fitted to umbrella-sampling
+barriers~\cite{Filion2010}. Variational umbrella seeding makes barriers
+nearly independent of the order parameter~\cite{Gispen2024}. For
+Lennard-Jones nuclei, detection algorithms agree on the core but disagree
+strongly on the composition of the surface~\cite{Gispen2025}. Li and
+co-workers corrected the size of spontaneously grown ice nuclei for their
+internal defects, which a surface term does not address~\cite{Li2025}. Our contribution is operational
+and specific to ice: the excess measured directly on planar ice/liquid
+interfaces for the structural labelers used in practice, for the observables
+nucleation studies report; its inversion; and its validation, including a
+prospective test, against seeds of known constructed size.
+
+\paragraph{Uncertainty of the calibration.} The calibration rests on nine
+slabs: three polytypes times three independent preparations. Re-estimating
+$f$ and $\delta$ jointly on 2000 bootstrap resamples of the slabs gives 95\%
+intervals of 3.30--3.49~\AA{} for CHILL+ and 4.90--5.07~\AA{} for PTM, and
+leaving out one preparation moves $\delta$ by at most 0.05~\AA. Propagated
+through \cref{eq:inverse}, this calibration uncertainty is $\pm$1--3\% of the
+recovered size for seeds of 200--1600 molecules (CHILL+, correctly assigned
+count; $\pm$1--2\% for PTM). It is smaller than the prediction errors above,
+and the 95\% interval contains the constructed size for only 14--22\% of
+run F seeds of 200--1600 molecules (both labelers and observables). The errors are thus systematic, coming from the approximations of
+\cref{eq:forward}, not from the calibration data. A size recovered with
+\cref{eq:inverse} should be quoted with the empirical error found here (up to
+10\% from 400 molecules on), not with the calibration interval alone. The frozen
+calibration used for run G is unchanged by this analysis.
+
+The correction has been validated for correctly assigned and largest-cluster
 counts of constructed, approximately spherical Ih, Ic and stacking-disordered
 seeds of 200--1600 molecules in TIP4P/Ice at 220~K, observed 2--20~ps after
 release, with a basal calibration. It does not by itself give critical
@@ -1528,9 +1550,10 @@ layer $\delta=\Gamma/n$ (\cref{eq:deadlayer}) and recover the size with
 spherical seeds of 200--1600 molecules in TIP4P/Ice at 220~K and confirmed on
 seeds prepared afterwards. For single seeds of 200 molecules the errors reach
 10\% (correct-polytype count) and 19\% (largest cluster) with CHILL+, and 25 and
-28\% with PTM. From 400 molecules on they stay within 10\% for both labelers. The size it
-recovers is the constructed size, which exceeds the intact crystal by about
-10\%. Check it before relying on it for smaller, faceted or growing nuclei or
+28\% with PTM. From 400 molecules on they stay within 10\% for both labelers. Quote the
+recovered size with this empirical error, not with the calibration interval
+($\pm$1--3\%), which does not contain the model error. The size it recovers
+is the constructed size, which exceeds the intact crystal by about 10\%. Check it before relying on it for smaller, faceted or growing nuclei or
 other conditions.
 \end{enumerate}
 

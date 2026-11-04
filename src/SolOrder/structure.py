@@ -159,6 +159,7 @@ class StructuralOrder(ExtendedOrder, DescriptorOrder):
         return self._run(kernels.kth_chunk, self.n, g.offsets, g.distances, k)
 
     def d5(self, *, cutoff=None):
+        """Distance to the fifth neighbor in Angstrom; NaN if fewer than five lie inside the cutoff."""
         return self.kth_neighbor_distance(5, cutoff=cutoff)
 
     def local_average(self, values, *, cutoff=None):
