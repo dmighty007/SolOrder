@@ -260,6 +260,7 @@ def readme(datasets, info):
               "python compute.py && python metrics.py              # per-molecule tables, separability",
               "python seed_audit.py && python interface_depth.py compute && python interface_depth.py metrics",
               "python nucleus_size.py && python interface_depth.py compute --confirmation && python confirmation.py",
+              "python calibration_uncertainty.py",
               "python false_nuclei.py && python ice_v.py",
               "python sensitivity.py compute && python sensitivity.py metrics",
               "python liquid_diagnostics.py && python redundancy_by_phase.py",

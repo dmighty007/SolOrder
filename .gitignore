@@ -29,3 +29,8 @@ manuscript/*.log
 
 # Archival dataset built by scripts/build_release.py
 release/
+
+# MDAnalysis trajectory offset caches
+*.xtc_offsets.*
+# mkdocs build output
+site/

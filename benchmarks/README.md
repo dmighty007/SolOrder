@@ -76,6 +76,7 @@ OMP_NUM_THREADS=1 ../.conda-env/bin/python cost.py --jobs 1   # about 20 min -> 
 ../.conda-env/bin/python nucleus_size.py       # planar calibration, forward and inverse -> results/nucleus_size*.csv
 <gencompas>/bin/python md_interface.py prepare-confirmation && <gencompas>/bin/python md_interface.py confirmation   # run G, ~10 min
 ../.conda-env/bin/python interface_depth.py compute --confirmation && ../.conda-env/bin/python confirmation.py   # frozen calibration on run G -> results/confirmation_*.csv
+../.conda-env/bin/python calibration_uncertainty.py   # bootstrap / jackknife of f and delta over the nine slabs -> results/calibration_uncertainty*.csv
 ../.conda-env/bin/python host_guest.py scan && ../.conda-env/bin/python host_guest.py compute && ../.conda-env/bin/python host_guest.py analyze   # OAMe-G2, data in cache/oame/
 ../.conda-env/bin/python confined_water.py compute && ../.conda-env/bin/python confined_water.py analyze                                     # T4L L99A, data in cache/t4l/
 ../.conda-env/bin/python host_guest.py export && ../.conda-env/bin/python confined_water.py export   # -> cache/applications/*_features.npz (archived; analyze falls back to them)
@@ -129,6 +130,7 @@ the SolOrder version and the registry hash are written to
 | `results/figures/F5`, `F6` | Neighbor-convention sensitivity; computational cost |
 | `results/interface_recall.csv`, `interface_prediction.csv`, `interface_prediction_errors.csv`, `interface_dead_layer.csv`, `interface_slab_prediction.csv` | Run F: recall by depth (per size, polytype, preparation), nucleus-size predictions of four models, dead layers |
 | `results/nucleus_size.csv`, `nucleus_size_summary.csv`, `nucleus_size_calibration.csv` | Planar calibration (f, count dead layer per labeler and observable, plus the integral variants as sensitivity); forward and inverse size per seed for every definition; pooled, per-system, signed and intact-based errors |
+| `results/calibration_uncertainty.csv`, `calibration_uncertainty_sizes.csv` | Calibration uncertainty: bootstrap (2000 resamples of the nine slabs) and leave-one-preparation-out intervals of f and delta, propagated to every recovered size; coverage of the constructed size |
 | `results/confirmation_seeds.csv`, `confirmation_slabs.csv`, `confirmation_time.csv` | Run G: frozen calibration on fresh seeds (300, 600); prism versus basal dead layer; dead layer 2-500 ps after release |
 | `results/oame_paths.csv`, `oame_regions.csv`, `oame_entry.csv`, `oame_drywet.csv`; `t4l_scores.csv`, `t4l_frozen.csv`, `t4l_cavity_track.csv`; `figures/F11` | Beyond ice: path labels, key-water separability, entry prediction (OAMe-G2); confined-water scores, frozen rule, cavity tracking (T4L L99A) |
 | `results/false_nuclei.csv`, `false_nuclei_frames.csv`, `false_nuclei_size.csv`, `false_nuclei_thresholds.csv` | Frozen rules on held-out liquids: false-positive fraction, largest false cluster, spanning, persistence; 1%-false-positive thresholds and their ice recall; 32,768-molecule liquids |
@@ -304,6 +306,11 @@ accuracies, but see the held-out check, which shows they barely differ here.
   cluster; all 24 within the pre-stated criterion. Prism {10-10} slabs: dead
   layer 10% thinner (CHILL+ 3.05 A, PTM 4.5 A); basal p4 reproduces 3.37 /
   5.04 A. Over 500 ps the CHILL+ dead layer is constant, PTM +0.13 A.
+- **Calibration uncertainty** (`calibration_uncertainty.py`). Bootstrap over
+  the nine slabs: delta CHILL+ 3.30-3.49 A, PTM 4.90-5.07 A (95%); leave one
+  preparation out: <= 0.05 A. Recovered sizes +-1-3% (200-1600), far below
+  the prediction errors; the interval covers the constructed size for only
+  14-22% of seeds: the errors are systematic (model), not calibration noise.
 - **Beyond ice: key and confined water** (supplementary material, `manuscript/supplement.tex`; `host_guest.py`, `confined_water.py`,
   F11). Water-only parameters, unchanged, on PathGennie unbinding paths
   (copied from gluon; not part of the release). OAMe-G2 (208 paths, TIP3P):

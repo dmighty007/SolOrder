@@ -62,6 +62,7 @@ class eFingerprint(StructuralOrder):
         return self
 
     def Entropy(self):
+        """Pair-entropy fingerprint of every oxygen in k_B; also stored in ``e``."""
         g = self.neighbor_list()
         self.e = self._run(kernels.entropy_chunk, len(self.ox_ids), self.ox_ids,
                            g.offsets, g.distances, self.r, self.sigma,
@@ -69,6 +70,7 @@ class eFingerprint(StructuralOrder):
         return self.e
 
     def localEntropy(self):
+        """Fingerprint averaged over each oxygen and its neighbors in k_B; also stored in ``le``."""
         e = self.Entropy()
         g = build_neighbors(self.pos[self.ox_ids], self.dimensions, self.cutoff)
         self.le = self._run(kernels.average_chunk, len(e), g.offsets, g.indices, e[:, None])[:, 0]

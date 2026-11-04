@@ -89,6 +89,7 @@ class DescriptorOrder:
         return descriptor.create(atoms, n_jobs=1)
 
     def soap(self, *, symbols="O", r_cut=5., n_max=8, l_max=6, sigma=.5, centers=None, **settings):
+        """DScribe SOAP vectors, one row per center; shorthand for ``atomic_descriptor("soap", ...)``."""
         return self.atomic_descriptor("soap", symbols=symbols, centers=centers,
                                       r_cut=r_cut, n_max=n_max, l_max=l_max, sigma=sigma, **settings)
 

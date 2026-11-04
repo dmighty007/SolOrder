@@ -88,8 +88,8 @@ The normal test suite uses bundled structures and requires no GenIce install:
 ```
 
 For generation commands, environment versions and input hashes, see
-[the fixture manifest](../../tests/data/genice/manifest.json) and
-[fixture instructions](../../tests/data/genice/README.md). The generation script
+[the fixture manifest](https://github.com/dmighty007/SolOrder/blob/main/tests/data/genice/manifest.json) and
+[fixture instructions](https://github.com/dmighty007/SolOrder/blob/main/tests/data/genice/README.md). The generation script
 has also been rerun into a separate directory to check byte-for-byte input
 reproducibility in the recorded environment.
 
